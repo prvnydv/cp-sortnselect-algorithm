@@ -6,7 +6,7 @@ A data science application for sorting and selection of relevant photos
 - Remove All images in which a face is not detected.
 - Remove near duplicate images.
 - Sort Images Based on Timestamp.
-- Grouping the sorted images based on the top 10 color in the images.
+- Grouping the sorted images based on the top 10 colors in the images.
 - Selecting Images Based on Emotion Score.
 - Sorting the Selected Images Based on Features Extracted from the images such as Emotion, Overall Gender, Age & if images are candid or not.
 - Creating a face count from the selected images to make an image cloud that can be presented to the client.
