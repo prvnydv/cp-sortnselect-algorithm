@@ -52,8 +52,5 @@ def eyes_dir(imagePath):
 
             EAR = (left_ear+right_ear)/2
             EAR = round(EAR,2)
-            if EAR<0.27 :
-                return 0
-            else:
-                return 1
+            return EAR
     return 0

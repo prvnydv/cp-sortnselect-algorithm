@@ -1,39 +1,53 @@
 from dublicate import *
 from face_extraction import img_to_faces
-from happy import expression_image
-from eyes import eyes_dir
-from age import face_age
-from gender import gender_pred
-from date_time import get_date_taken
+from utils import get_date_taken,unpack
+from selection_from_groups import selection_from_groups
+from final_selection import selection
+from image_frequency import img_frequency
 import time
-from similarity import dominant
+from similarity import get_colors,color_diff
 import cv2
 import argparse
+import shutil
 
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", required=True,
 	help="path to input image")
-ap.add_argument("-o", "--output", required=True,
-	help="path to output image")
+ap.add_argument("-n", "--number", required=True,
+	help="number of images in output")
 args = vars(ap.parse_args())
 
 image_dir=args['input']
-face_dir= 'faces'
-new_img_dir=args['output']
-
+face_dir= 'face_image'
+new_img_dir='output'
 
 start_time = time.time()
 
-#################################################################### Dublication Removal ###################################################################################################################################################
+
+##################################################################### Removing All files except images ###################################################################################################################################################
+
+
+path= image_dir+'/'
+files = os.listdir(path)
+for file in files:
+    _,ext=file.split(".")
+    if ext not in ['jpg','JPG','jpeg','JPEG','png','PNG']:
+    	os.remove(path+file)
+
+
+
+############################################################################ Dublication Removal ###################################################################################################################################################
 
 
 for i in range(2):
+	# 16 --> Hash Length
+	# 240 --> Threshold
     remove_similar_from_dir(image_dir,16,240)
     os.remove('img_hashes_16.csv')
 
 
-##################################################################### Face Extraction ###################################################################################################################################################
+##################################################################### Removing All Images except images that have faces in them ###################################################################################################################################################
 
 
 os.makedirs(face_dir)
@@ -41,125 +55,138 @@ path= image_dir+'/'
 files = os.listdir(path)
 for file in files:
     _,ext=file.split(".")
-    if ext in ['jpg','JPG','jpeg','JPEG']:
-        img_to_faces(path,file)
+    if ext in ['jpg','JPG','jpeg','JPEG','png','PNG']:
+        img_to_faces(path,file)   
 
-
-##################################################################### Emotion Prediction ###################################################################################################################################################
-
-
-index=[]
 image_id=[]
-happy=[]
 face_path=face_dir+'/'
 files=os.listdir(face_path)
 for file in files:
     name=[]
-    name=file.split("_")
-    happy.append(expression_image(face_path+file)[0])
-    index.append(name[0])
+    name=file.split("$")
     image_id.append(name[1])
+image_id=set(image_id)
 
-data= list(zip(index,image_id,happy))
-final_data = pd.DataFrame(data, columns = ['index', 'image_id','happy'])
-grouped = final_data.groupby('image_id')
-happy=pd.DataFrame(grouped['happy'].agg(np.mean))
-
-
-#################################################################### Candid Prediction ###################################################################################################################################################
-
-
-eyes_focus=[]
-for file in files:
-    name=[]
-    name=file.split("_")
-    eyes_focus.append(eyes_dir(face_path+file))
-    
-data= list(zip(index,image_id,eyes_focus))
-final_data = pd.DataFrame(data, columns = ['index', 'image_id','not_candid'])
-grouped = final_data.groupby('image_id')
-eyes=grouped['not_candid'].agg(np.mean)
-eyes=pd.DataFrame(eyes)
+files=os.listdir(path)
+for i in range(len(files)):
+    if files[i] not in image_id:
+        os.remove(path+files[i])
+shutil.rmtree(face_dir)    
 
 
-#################################################################### Gender Prediction ###################################################################################################################################################
+##################################################################### Sorting Images based on timestamp ###################################################################################################################################################
 
 
-gender=[]
-for file in files:
-    name=[]
-    name=file.split("_")
-    result=gender_pred(face_path+file)
-    gender.append(result[0][0][0])
-    
-
-data= list(zip(index,image_id,gender))
-final_data = pd.DataFrame(data, columns = ['index', 'image_id','gender'])
-grouped = final_data.groupby('image_id')
-gender=pd.DataFrame(grouped['gender'].agg(np.mean))
-
-
-#################################################################### Age Prediction ###################################################################################################################################################
-
-
-age=[]
-for file in files:
-    name=[]
-    name=file.split("_")
-    result=face_age(face_path+file)
-    age.append(result)
-
-data= list(zip(index,image_id,age))
-final_data = pd.DataFrame(data, columns = ['index', 'image_id','age'])
-grouped = final_data.groupby('image_id')
-age=pd.DataFrame(grouped['age'].agg(np.mean))
-
-
-############################################################ Aggregating Features and Date/time based Sorting  ###################################################################################################################################################
-
-
-all_features2=[happy,eyes,age,gender]
-all_features2=pd.concat(all_features2,axis=1)
-all_features2['final_feature']=all_features2.apply(lambda row: row.gender*0.1 + 0.2/row.age+ row.not_candid*0.4+ row.happy*0.3, axis=1)
-all_features2 = all_features2.sort_values(by=['final_feature'], ascending=False)
-all_features2.reset_index(inplace = True)
-all_features=all_features2[:10]
-del all_features2
-
+files=os.listdir(image_dir)
 date=[]
-for i in range(len(all_features)):
-    date.append(get_date_taken(image_dir+'/'+all_features.iloc[i]['image_id']))
-    
-all_features['date_time'] = date
+image_id=[]
+for i in range(len(files)):
+    date.append(get_date_taken(image_dir+'/'+files[i]))
+    image_id.append(files[i])
+all_features= list(zip(image_id,date))
+all_features=pd.DataFrame(all_features)
+all_features.columns=["image_id","date_time"]
 all_features = all_features.sort_values(by=['date_time'], ascending=True)
 
+# #################################################################### Grouping Images based on Color Palette  ###################################################################################################################################################
 
-#################################################################### Nearness Removal ###################################################################################################################################################
+
+group_number=1
+group='group_test'
+os.makedirs(group)
+os.makedirs(group+'/'+str(group_number))
+img=cv2.imread(image_dir+'/'+all_features.iloc[0]['image_id'])
+cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[0]['image_id'],img)
+for i in range(len(all_features)-3):
+    a,b,c,d=get_colors(image_dir+'/'+all_features.iloc[i]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+1]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+2]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+3]['image_id'])
+    # Checking ith and (i+3)th image
+    if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
+        try:
+            img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+            
+            img2=cv2.imread(image_dir+'/'+all_features.iloc[i+2]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+2]['image_id'],img2)
+            
+            img3=cv2.imread(image_dir+'/'+all_features.iloc[i+3]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+3]['image_id'],img3)
+            i+=2
+        except:
+            pass
+    # Checking ith and (i+2)th image
+    elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
+        try:
+            img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+            
+            img2=cv2.imread(image_dir+'/'+all_features.iloc[i+2]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+2]['image_id'],img2)
+            i+=1
+        except:
+            pass
+    # Checking ith and (i+1)th image
+    elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
+        try:
+            img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+        except:
+            pass 
+    else: # New group created if none of the above criterion are met
+        group_number+=1
+        os.makedirs(group+'/'+str(group_number))
+        try:
+            img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
+            cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+        except:
+            pass
+
+# #################################################################### Selection of Images from the groups ###################################################################################################################################################
+
+images=[]
+var='group_test/'
+group=os.listdir(var)
+for i in range(len(group)):
+    images.append(selection_from_groups(var+group[i]))
+images=list(unpack(images)) 
+
+# #################################################################### Sorting The Images ###################################################################################################################################################
+
+
+final_selection=selection(image_dir,images)[:int(args['number'])]
+shutil.rmtree(var)    
+
+
+# ############################################################ Creating the output  ###################################################################################################################################################
 
 
 os.makedirs(new_img_dir)
-img=cv2.imread(image_dir+'/'+all_features.iloc[0]['image_id'])
-cv2.imwrite(new_img_dir+'/'+all_features.iloc[0]['image_id'],img)
+for i in range(len(final_selection)):
+    try:
+        img=cv2.imread(image_dir+'/'+final_selection.iloc[i]['image_id'])
+        cv2.imwrite(new_img_dir+'/'+final_selection.iloc[i]['image_id'],img)
+    except:
+        pass
 
-for i in range(len(all_features)-1):
-    time_delay=abs(all_features.iloc[i]['date_time'] - all_features.iloc[i+1]['date_time'])
-    if time_delay < 50:
-        continue
-    elif time_delay < 500:
-        if abs((dominant(image_dir+'/'+all_features.iloc[i]['image_id'])- dominant(image_dir+'/'+all_features.iloc[i+1]['image_id'])).sum())<80:
-            continue
-        else:
-            try:
-                img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-                cv2.imwrite(new_img_dir+'/'+all_features.iloc[i+1]['image_id'],img)
-            except:
-                pass
-    else:
-        try:
-            img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-            cv2.imwrite(new_img_dir+'/'+all_features.iloc[i+1]['image_id'],img)
-        except:
-            pass
+# #################################################################### Creating the Face Count for Image Cloud ###################################################################################################################################################
+a=dict()
+os.makedirs(face_dir)
+final_selection=os.listdir(new_img_dir)
+path= image_dir+'/'
+for i in range(len(final_selection)):
+    img_frequency(path,final_selection[i],a,i)
+a_list=list(a.keys())
+for i in range(len(a_list)):
+    a[a_list[i]]['images']=set(a[a_list[i]]['images'])
+
+faces=[]
+count=[]
+for i in range(len(a_list)):
+    faces.append(a_list[i])
+    count.append(len(a[a_list[i]]['images']))
+
+image_cloud= list(zip(faces,count))
+image_cloud = pd.DataFrame(image_cloud, columns = ['faces','count'])
+image_cloud.to_csv('image_cloud.csv')
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
