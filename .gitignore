@@ -190,3 +190,6 @@ dmypy.json
 
 /sns
 /tutorial-env
+/output
+/face_image
+/image_cloud.csv
