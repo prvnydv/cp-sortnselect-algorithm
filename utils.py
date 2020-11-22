@@ -30,7 +30,7 @@ def initiate_s3_resource_instance():
 
     return s3
 
-def df_to_s3(df, job_uid, op_name):
+def df_to_s3(df, job_uid, op_name, bucket='sns-outputs'):
     aws_access_key_id = ''
     aws_secret_access_key = ''
 
@@ -38,7 +38,7 @@ def df_to_s3(df, job_uid, op_name):
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
-    with fs.open(f's3://#{bucket}/#{path}/#{op_name}.csv', 'wb') as f:
+    with fs.open(f's3://{bucket}/{path}/{op_name}.csv', 'wb') as f:
         f.write(bytes_to_write)
 
 def df_from_s3(job_uid, op_name):
