@@ -17,7 +17,7 @@ def img_hash(url, hash_size): # fetching image hashes
 
 
 def get_hashes(url_array, hash_size, job_uid): # Adding the hashes to csv for future use
-    hash_file = f'img_hashes_#{hash_size}.csv'
+    hash_file = f'img_hashes_{hash_size}.csv'
     if not os.path.isfile(hash_file):
         hashes = pd.DataFrame()
     else:
@@ -40,7 +40,7 @@ def get_hashes(url_array, hash_size, job_uid): # Adding the hashes to csv for fu
 
 
 def read_hashes(hash_size, job_uid): # formatting the hash reading in csv
-    hash_file = f'img_hashes_#{hash_size}.csv'
+    hash_file = f'img_hashes_{hash_size}.csv'
     hashes = df_from_s3(job_uid, hash_file)[['file','hash']]
     lambdafunc = lambda x: pd.Series([int(i,16) for key,i in zip(range(0,len(x['hash'])),x['hash'])])
     newcols = hashes.apply(lambdafunc, axis=1)

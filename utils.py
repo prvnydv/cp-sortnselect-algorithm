@@ -46,12 +46,11 @@ def df_from_s3(job_uid, op_name):
     aws_secret_access_key = ''
 
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
-    key = f'{str(job_uid)}\{op_name}.csv'
+    key = f'{job_uid}/{op_name}.csv'
     bucket = 'sns-outputs'
 
-    df = pd.read_csv(fs.open('{}/{}'.format(bucket, key),
-                            mode='rb')
-                    )
+    df = pd.read_csv(fs.open(f'{bucket}/{key}', mode='rb'))
+
     return df
 
 def read_pillow_image_from_s3(s3_uri):
