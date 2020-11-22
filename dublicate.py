@@ -68,15 +68,9 @@ def remove_similar_from_dir(url_array,hash_size,threshold, job_uid):
     for i in range(len(keep)):
         if keep[i] in rem:
             similar.remove(rem[i])
-    col_dir = directory+'*.jpg'
-    col = os.listdir(directory)
-    index=[]
-    for i in range(len(col)):
-        index.append(i)
-    dictionary=dict(zip(index,col))
-    for i in similar:
-        try:
-            path = os.path.join(directory, dictionary[i])
-            os.remove(path)
-        except OSError:
-            pass   
+    ## remove all the similar images for entire array
+    to_be_deleted_items = [url_array[index] for i in similar]
+    for element in to_be_deleted_items:
+        url_array.remove(element)
+    
+    return url_array
