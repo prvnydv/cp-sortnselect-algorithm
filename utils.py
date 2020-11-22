@@ -22,10 +22,12 @@ def initiate_s3_resource_instance():
     aws_access_key_id = ''
     aws_secret_access_key = ''
     region_name = 'ap-south-1'
-    s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, 
+    s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id, 
+                              aws_secret_access_key=aws_secret_access_key, 
                                      aws_secret_access_key=aws_secret_access_key, 
-                                     region_name=region_name)
-    
+                              aws_secret_access_key=aws_secret_access_key, 
+                              region_name=region_name)
+
     return s3
 
 def df_to_s3(df, job_uid, op_name):
