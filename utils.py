@@ -56,12 +56,17 @@ def df_from_s3(job_uid, op_name):
 
     return df
 
-def read_pillow_image_from_s3(s3_uri):
-    s3 = initiate_s3_resource_instance()
+def parse_bucket_key(s3_uri):
     parse_url = urlparse(s3_uri, allow_fragments = False)
     bucket = parse_url.netloc
     key = parse_url.path.lstrip('/')
-    file_byte_string = self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+
+    return bucket, key
+
+def read_pillow_image_from_s3(s3_uri):
+    s3 = initiate_s3_resource_instance()
+    bucket, key = parse_bucket_key(s3_uri)
+    file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
     
     return Image.open(BytesIO(file_byte_string))
 
