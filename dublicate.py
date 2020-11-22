@@ -2,16 +2,25 @@ import imagehash
 import os
 import numpy as np
 import pandas as pd
-import PIL
+from PIL import Image
+from io import BytesIO
 from sklearn.neighbors import KDTree
+from urllib.parse import urlparse
+from utils import initiate_s3_resource_instance
+
+def read_pillow_image_from_s3(s3_uri):
+    s3 = initiate_s3_resource_instance()
+    parse_url = urlparse(s3_uri, allow_fragments = False)
+    bucket = parse_url.netloc
+    key = parse_url.path.lstrip('/')
+    file_byte_string = self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+    
+    return Image.open(BytesIO(file_byte_string))
 
 
-def img_hash(file, hash_size): # fetching image hashes   
-    return imagehash.phash(PIL.Image.open(file),hash_size=hash_size)
+def img_hash(url, hash_size): # fetching image hashes   
+    return imagehash.phash(read_pillow_image_from_s3(url),hash_size=hash_size)
 
-
-def get_hashes(directory, hash_size): # Adding the hashes to csv for future use
-    hash_file = 'img_hashes_%s.csv' % hash_size
     if not os.path.isfile(hash_file):
         hashes = pd.DataFrame()
     else:
