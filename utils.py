@@ -30,8 +30,6 @@ def initiate_s3_resource_instance():
     region_name = 'ap-south-1'
     s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id, 
                               aws_secret_access_key=aws_secret_access_key, 
-                                     aws_secret_access_key=aws_secret_access_key, 
-                              aws_secret_access_key=aws_secret_access_key, 
                               region_name=region_name)
 
     return s3
@@ -40,7 +38,6 @@ def df_to_s3(df, job_uid, op_name, bucket='sns-outputs'):
     aws_access_key_id = ''
     aws_secret_access_key = ''
 
-    bucket = 'sns-outputs'
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
@@ -92,7 +89,6 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-ou
     tmp = tempfile.NamedTemporaryFile(suffix='.jpg')
     cv2.imwrite(tmp.name, image)
     
-
     with open(tmp.name, 'rb') as f:
         s3.Bucket(bucket).put_object(Key= f'{folder_name}/{job_uid}/{file_name}.jpg', Body=f, ContentType= 'image/png')
         f.close()
