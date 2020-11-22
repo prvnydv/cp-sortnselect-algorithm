@@ -7,9 +7,12 @@ from urllib.parse import urlparse
 from tempfile import NamedTemporaryFile
 import cv2
 
+def get_date_taken(s3_uri):
+    s3 = initiate_s3_resource_instance()
+    bucket, key = parse_bucket_key(s3_uri)
+    file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
 
-def get_date_taken(path):
-    date_time=re.split(':| ',Image.open(path)._getexif()[36867])
+    date_time=re.split(':| ',Image.open(BytesIO(file_byte_string))._getexif()[36867])
     return int(date_time[0]+date_time[1]+date_time[2]+date_time[3]+date_time[4]+date_time[5])
 
 # unpacking [1,[2,3],{4,5,6}] --> [1,2,3,4,5,6]
