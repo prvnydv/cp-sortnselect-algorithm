@@ -98,3 +98,9 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-ou
         f.close()
 
 
+def s3_client():
+    aws_access_key_id = ''
+    aws_secret_access_key = ''
+    return s3fs.S3FileSystem(anon=False,
+                             key=aws_access_key_id,
+                             secret=aws_secret_access_key))
