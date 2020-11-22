@@ -2,6 +2,8 @@ from imutils import paths,resize
 import cv2
 import os
 import numpy as np
+from utils import read_pillow_image_from_s3
+from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
 
 def detect_blur_fft(image, size=60, thresh=0, vis=True):
     (h, w) = image.shape
@@ -16,9 +18,9 @@ def detect_blur_fft(image, size=60, thresh=0, vis=True):
     return mean
 
 model_face_extraction = cv2.dnn.readNetFromCaffe("face_extraction_model/deploy.prototxt", 'face_extraction_model/weights.caffemodel')
-def img_to_faces(path,file):
+def img_to_faces(job_uid,s3_uri):
 	try:
-	    image = cv2.imread(path + file)
+	    image = read_with_cv2_from_generated_temp_file(s3_uri)
 	    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	    mean = detect_blur_fft(gray, size=60)
 
@@ -39,6 +41,6 @@ def img_to_faces(path,file):
 	            count += 1
 	            frame = image[startY:endY, startX:endX]
 	            if len(frame)>200 and len(frame[0])>200 and mean>0: # Face dimentions should be atleast (200,200) and blur> 0
-	                cv2.imwrite('face_image'+'/' + str(i) + '$' + file, frame)
+									write_cv2_image_to_s3(frame, faces_extracted, f'{i}${s3_uri}', job_uid)
 	except:
 		pass

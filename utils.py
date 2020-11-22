@@ -3,6 +3,9 @@ import boto3
 import s3fs
 from PIL import Image
 from io import BytesIO
+from urllib.parse import urlparse
+from tempfile import NamedTemporaryFile
+import cv2
 
 
 def get_date_taken(path):
@@ -61,5 +64,29 @@ def read_pillow_image_from_s3(s3_uri):
     file_byte_string = self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
     
     return Image.open(BytesIO(file_byte_string))
+
+def read_with_cv2_from_generated_temp_file(s3_uri):
+    s3 = initiate_s3_resource_instance()
+    bucket, key = parse_bucket_key(s3_uri)
+
+    object = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, 'wb') as f:
+        object.download_fileobj(f)
+        img=cv2.imread(tmp.name)
+
+        f.close()
+    
+    return img
+
+def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-outputs'):
+    s3 = initiate_s3_resource_instance()
+    tmp = tempfile.NamedTemporaryFile(suffix='.jpg')
+    cv2.imwrite(tmp.name, image)
+    
+
+    with open(tmp.name, 'rb') as f:
+        s3.Bucket(bucket).put_object(Key= f'{folder_name}/{job_uid}/{file_name}.jpg', Body=f, ContentType= 'image/png')
+        f.close()
 
 
