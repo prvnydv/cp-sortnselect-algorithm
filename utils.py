@@ -1,5 +1,8 @@
 from PIL import Image
 import re
+import boto3
+import s3fs
+
 
 def get_date_taken(path):
     date_time=re.split(':| ',Image.open(path)._getexif()[36867])
@@ -23,3 +26,29 @@ def initiate_s3_resource_instance():
                                      region_name=region_name)
     
     return s3
+
+def df_to_s3(df, job_uid, op_name):
+    aws_access_key_id = ''
+    aws_secret_access_key = ''
+
+    bucket = 'sns-outputs'
+    path = str(job_uid)
+    bytes_to_write = df.to_csv(None).encode()
+    fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
+    with fs.open(f's3://#{bucket}/#{path}/#{op_name}.csv', 'wb') as f:
+        f.write(bytes_to_write)
+
+def df_from_s3(job_uid, op_name):
+    aws_access_key_id = ''
+    aws_secret_access_key = ''
+
+    fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
+    key = f'{str(job_uid)}\{op_name}.csv'
+    bucket = 'sns-outputs'
+
+    df = pd.read_csv(fs.open('{}/{}'.format(bucket, key),
+                            mode='rb')
+                    )
+    return df
+
+
