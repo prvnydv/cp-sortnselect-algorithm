@@ -9,15 +9,7 @@ from urllib.parse import urlparse
 from utils import initiate_s3_resource_instance
 from utils import df_to_s3, df_from_s3
 import s3fs
-
-def read_pillow_image_from_s3(s3_uri):
-    s3 = initiate_s3_resource_instance()
-    parse_url = urlparse(s3_uri, allow_fragments = False)
-    bucket = parse_url.netloc
-    key = parse_url.path.lstrip('/')
-    file_byte_string = self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
-    
-    return Image.open(BytesIO(file_byte_string))
+from utils import read_pillow_image_from_s3
 
 
 def img_hash(url, hash_size): # fetching image hashes   
