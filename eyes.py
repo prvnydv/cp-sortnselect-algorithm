@@ -3,6 +3,7 @@ from scipy.spatial import distance
 import os
 import cv2
 from imutils import paths,resize
+from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
 
 def calculate_EAR(eye):
     A = distance.euclidean(eye[1], eye[5])
@@ -14,8 +15,8 @@ def calculate_EAR(eye):
 hog_face_detector = dlib.get_frontal_face_detector()
 dlib_facelandmark = dlib.shape_predictor("feature_models/shape_predictor_68_face_landmarks.dat")
 
-def eyes_dir(imagePath):
-    image = cv2.imread(imagePath)
+def eyes_dir(s3_uri):
+    image = read_with_cv2_from_generated_temp_file(s3_uri)
     image = resize(image, width=500)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = hog_face_detector(gray)
