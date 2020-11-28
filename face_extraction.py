@@ -18,7 +18,7 @@ def detect_blur_fft(image, size=60, thresh=0, vis=True):
     return mean
 
 model_face_extraction = cv2.dnn.readNetFromCaffe("face_extraction_model/deploy.prototxt", 'face_extraction_model/weights.caffemodel')
-def img_to_faces(job_uid,s3_uri):
+def img_to_faces(job_uid, s3_uri, folder):
 	try:
 	    image = read_with_cv2_from_generated_temp_file(s3_uri)
 	    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -41,6 +41,6 @@ def img_to_faces(job_uid,s3_uri):
 	            count += 1
 	            frame = image[startY:endY, startX:endX]
 	            if len(frame)>200 and len(frame[0])>200 and mean>0: # Face dimentions should be atleast (200,200) and blur> 0
-									write_cv2_image_to_s3(frame, 'faces_extracted', f'{i}${s3_uri}', job_uid)
+									write_cv2_image_to_s3(frame, folder, f'{i}${s3_uri.split("/")[-1]}', job_uid)
 	except:
 		pass
