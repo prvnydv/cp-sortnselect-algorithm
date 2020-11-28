@@ -99,4 +99,5 @@ def s3_client():
     aws_secret_access_key = ''
     return s3fs.S3FileSystem(anon=False,
                              key=aws_access_key_id,
-                             secret=aws_secret_access_key))
+                             secret=aws_secret_access_key,
+                             use_ssl=False)
