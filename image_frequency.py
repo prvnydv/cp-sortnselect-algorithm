@@ -3,10 +3,13 @@ import os
 import cv2
 from face_extraction import detect_blur_fft
 import numpy as np
+from utils import read_pillow_image_from_s3
+from utils import write_cv2_image_to_s3, read_with_cv2_from_generated_temp_file
 
 model_face_extraction = cv2.dnn.readNetFromCaffe("face_extraction_model/deploy.prototxt", 'face_extraction_model/weights.caffemodel')
-def img_frequency(path,file,a,j):
-    image = cv2.imread(path + file)
+def img_frequency(s3_uri,job_uid,a,j):
+
+    image = read_with_cv2_from_generated_temp_file(s3_uri)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     mean = detect_blur_fft(gray, size=60)
 
@@ -28,24 +31,25 @@ def img_frequency(path,file,a,j):
             count += 1
             frame = image[startY:endY, startX:endX]
             if len(frame)>200 and len(frame[0])>200 and mean>0:
-                cv2.imwrite('face_image'+'/' + str(i) + '$' + file, frame)
+
+                write_cv2_image_to_s3(frame, 'faces_extracted', f'{i}${s3_uri.split("/")[-1]}', job_uid)
                 try:
                     # Saving New Faces and appending in image maps when similar image is found
-                    other_img=face_recognition.load_image_file('face_image'+'/' + str(i) + '$' + file)
+                    other_img=face_recognition.load_image_file(read_pillow_image_from_s3(f"s3://pical-backend-dev/faces_extracted/{job_uid}/{i}${s3_uri.split("/")[-1]}"))
                     other_enc=face_recognition.face_encodings(other_img)[0]
                     a_list=list(a.keys())
                     flag=0
                     for k in range(len(a_list)):
                         if face_recognition.compare_faces([a[a_list[k]]['face_vector']], other_enc)[0]:
                             # Append in Image map if faces are similar
-                            [a[a_list[k]]['images']][0].append(file)
+                            [a[a_list[k]]['images']][0].append(s3_uri)
                             flag=1
                             break
                         else:
                             continue
                     if flag==0:
                         # Save new face
-                        a[str(i) + '$' + file]={'face_vector':other_enc,'images':[file]}
+                        a[f"{i}${s3_uri.split("/")[-1]}"]={'face_vector':other_enc,'images':[{s3_uri}]}
 
                                                 
                     
