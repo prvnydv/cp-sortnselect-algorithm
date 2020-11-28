@@ -3,33 +3,30 @@ from face_extraction import img_to_faces
 from happy import expression_image
 import pandas as pd
 from eyes import eyes_dir
+from utils import s3_client
 from gender import gender_pred
 from age import face_age
 import numpy as np
 import shutil
 
 # Final sorting of all images that are selected from groups
-def selection(image_dir,files):
-    face_dir= 'face_image'
-    os.makedirs(face_dir)
-    path= image_dir+'/'
-    #files = os.listdir(path)
-    for file in files:
-        _,ext=file.split(".")
-        if ext in ['jpg','JPG','jpeg','JPEG']:
-            img_to_faces(path,file)
+def selection(urls, job_uid):
+    for url in urls:
+        ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
+        if url.endswith(ext):
+            img_to_faces(job_uid, url, 'face_extraction_for_sorting')
 
     # Emotion scores of images 
     index=[]
     image_id=[]
     happy=[]
     face_count=[]
-    face_path=face_dir+'/'
-    files=os.listdir(face_path)
+    face_path="s3://pical-backend-dev/{job_uid}/face_extraction_for_sorting"
+    files=s3_client.ls(face_path)
     for file in files:
         name=[]
-        name=file.split("$")
-        happy.append(expression_image(face_path+file)[0])
+        name=file.split("/")[-1].split("$")
+        happy.append(expression_image(file)[0])
         index.append(name[0])
         image_id.append(name[1])
         face_count.append(1)
@@ -44,9 +41,7 @@ def selection(image_dir,files):
     eyes_focus=[]
 
     for file in files:
-        name=[]
-        name=file.split("$")
-        eyes_focus.append(eyes_dir(face_path+file))
+        eyes_focus.append(eyes_dir(file))
 
     data= list(zip(index,image_id,eyes_focus))
     final_data = pd.DataFrame(data, columns = ['index', 'image_id','not_candid'])
@@ -58,9 +53,7 @@ def selection(image_dir,files):
     # Gender scores of images
     gender=[]
     for file in files:
-        name=[]
-        name=file.split("$")
-        result=gender_pred(face_path+file)
+        result=gender_pred(file)
         gender.append(result[0][0][0])
 
 
@@ -72,9 +65,7 @@ def selection(image_dir,files):
     # Age scores of images
     age=[]
     for file in files:
-        name=[]
-        name=file.split("$")
-        result=face_age(face_path+file)
+        result=face_age(file)
         age.append(result)
 
     data= list(zip(index,image_id,age))
@@ -89,7 +80,7 @@ def selection(image_dir,files):
     all_features2['final_feature']=all_features2.apply(lambda row: row.gender*0.1 + 0.2/row.age+ row.not_candid*0.4+ row.happy*0.3, axis=1)
     all_features2 = all_features2.sort_values(by=['final_feature'], ascending=False) # Sorting Based on final feature
     all_features2.reset_index(inplace = True)
-    shutil.rmtree(face_dir)
+    
     return all_features2
 
 
