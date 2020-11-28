@@ -14,6 +14,7 @@ from similarity import get_colors,color_diff
 import cv2
 import shutil
 from utils import s3_client
+from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
 
 app = Flask(__name__)
 
@@ -30,6 +31,10 @@ def consolidated_score():
 
     start_time = time.time()
 
+    url_image_id_mapper = {}
+    for url in url_array:
+        image_id = url.split("/")[-1]
+        url_image_id_mapper[image_id] = url
 
     ##################################################################### Removing All files except images ###################################################################################################################################################
 
@@ -52,18 +57,15 @@ def consolidated_score():
 
     ##################################################################### Removing All Images except images that have faces in them ###################################################################################################################################################
 
-
-    os.makedirs(face_dir)
     for url in url_array:
         ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
         if url.endswith(ext):
-            img_to_faces(job_uid, url)   
+            img_to_faces(job_uid, url, 'image_with_faces')   
 
 
 
     image_id=[]
-    face_path=face_dir+'/'
-    face_files_url=s3_client.ls(f's3://sns-outputs/faces_extracted/{job_uid}')
+    face_files_url=s3_client.ls(f's3://sns-outputs/faces_extracted/{job_uid}/')
     for url in face_files_url:
         name=url.split("$")
         image_id.append(name[1].split(".")[0])
@@ -80,7 +82,7 @@ def consolidated_score():
     image_id=[]
     for url in url_array:
         date.append(get_date_taken(url))
-        image_id.append(url)
+        image_id.append(url.split("/")[-1])
     all_features= list(zip(image_id,date))
     all_features=pd.DataFrame(all_features)
     all_features.columns=["image_id","date_time"]
@@ -91,100 +93,94 @@ def consolidated_score():
 
     group_number=1
     group='group_test'
-    os.makedirs(group)
-    os.makedirs(group+'/'+str(group_number))
-    img=cv2.imread(image_dir+'/'+all_features.iloc[0]['image_id'])
-    cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[0]['image_id'],img)
+    img = read_with_cv2_from_generated_temp_file(all_features.iloc[0]['image_id'])
+    write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[0]['image_id']}', job_uid)
     for i in range(len(all_features)-3):
-        a,b,c,d=get_colors(image_dir+'/'+all_features.iloc[i]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+1]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+2]['image_id']),get_colors(image_dir+'/'+all_features.iloc[i+3]['image_id'])
+        a,b,c,d=get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id'])
         # Checking ith and (i+3)th image
         if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
                 
-                img2=cv2.imread(image_dir+'/'+all_features.iloc[i+2]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+2]['image_id'],img2)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+2]['image_id']}', job_uid)
                 
-                img3=cv2.imread(image_dir+'/'+all_features.iloc[i+3]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+3]['image_id'],img3)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+3]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+3]['image_id']}', job_uid)
                 i+=2
             except:
                 pass
         # Checking ith and (i+2)th image
         elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
                 
-                img2=cv2.imread(image_dir+'/'+all_features.iloc[i+2]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+2]['image_id'],img2)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+2]['image_id']}', job_uid)
+
                 i+=1
             except:
                 pass
         # Checking ith and (i+1)th image
         elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
             except:
                 pass 
         else: # New group created if none of the above criterion are met
             group_number+=1
-            os.makedirs(group+'/'+str(group_number))
             try:
-                img=cv2.imread(image_dir+'/'+all_features.iloc[i+1]['image_id'])
-                cv2.imwrite(group+'/'+str(group_number)+'/'+all_features.iloc[i+1]['image_id'],img)
+                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
+                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
             except:
                 pass
 
     # #################################################################### Selection of Images from the groups ###################################################################################################################################################
 
     images=[]
-    var='group_test/'
-    group=os.listdir(var)
-    for i in range(len(group)):
-        images.append(selection_from_groups(var+group[i]))
+    var='group_test'
+    job_group_folder = f's3://sns-outputs/{var}/{job_uid}/'
+    groups = s3_client.ls(job_group_folder)
+    for i in range(len(groups)):
+        individual_group_folder = f'{job_group_folder}/{i}/'
+        images.append(selection_from_groups(individual_group_folder, job_uid))
     images=list(unpack(images)) 
 
     # #################################################################### Sorting The Images ###################################################################################################################################################
 
 
-    final_selection=selection(image_dir,images)[:int(args['number'])]
-    shutil.rmtree(var)    
+    final_selection=selection(images, job_uid)[int(number_of_output_images)]   
 
 
     # ############################################################ Creating the output  ###################################################################################################################################################
 
+    final_selection['image_s3_url'] = final_selection.apply(lambda row: url_image_id_mapper[row['image_id']], axis=1)
 
-    os.makedirs(new_img_dir)
-    for i in range(len(final_selection)):
-        try:
-            img=cv2.imread(image_dir+'/'+final_selection.iloc[i]['image_id'])
-            cv2.imwrite(new_img_dir+'/'+final_selection.iloc[i]['image_id'],img)
-        except:
-            pass
 
     # #################################################################### Creating the Face Count for Image Cloud ###################################################################################################################################################
-    a=dict()
-    os.makedirs(face_dir)
-    final_selection=os.listdir(new_img_dir)
-    path= image_dir+'/'
-    for i in range(len(final_selection)):
-        img_frequency(path,final_selection[i],a,i)
-    a_list=list(a.keys())
-    for i in range(len(a_list)):
-        a[a_list[i]]['images']=set(a[a_list[i]]['images'])
+    # a=dict()
+    # os.makedirs(face_dir)
+    # final_selection=os.listdir(new_img_dir)
+    # path= image_dir+'/'
+    # for i in range(len(final_selection)):
+    #     img_frequency(path,final_selection[i],a,i)
+    # a_list=list(a.keys())
+    # for i in range(len(a_list)):
+    #     a[a_list[i]]['images']=set(a[a_list[i]]['images'])
 
 
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # print("--- %s seconds ---" % (time.time() - start_time))
 
 
     result = {
       "input_image_urls" : url_array,
       "number_of_input_images" : len(url_array),
       "number_of_output_images" : number_of_output_images,
+      "output_image_urls" : final_selection['image_s3_url'].tolist()
       "sns version" : "v1.0",
       "timestamp" : current_time
     }
