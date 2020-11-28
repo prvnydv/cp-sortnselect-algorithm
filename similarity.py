@@ -1,9 +1,10 @@
 import numpy as np
 from PIL import Image, ImageDraw
+from utils import read_pillow_image_from_s3
 
-def get_colors(image_file, numcolors=10, resize=150):
+def get_colors(image_uri, numcolors=10, resize=150):
     # Resize image to speed up processing
-    img = Image.open(image_file)
+    img = read_pillow_image_from_s3(image_uri)
     img = img.copy()
     img.thumbnail((resize, resize))
     # Reduce to palette
