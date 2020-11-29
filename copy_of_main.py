@@ -65,7 +65,7 @@ def consolidated_score():
 
 
     image_id=[]
-    face_files_url=s3_client.ls(f's3://sns-outputs/faces_extracted/{job_uid}/')
+    face_files_url=s3_client.ls(f's3://sns-outputs/{job_uid}/faces_extracted')
     for url in face_files_url:
         name=url.split("$")
         image_id.append(name[1].split(".")[0])
@@ -142,17 +142,17 @@ def consolidated_score():
 
     images=[]
     var='group_test'
-    job_group_folder = f's3://sns-outputs/{var}/{job_uid}/'
+    job_group_folder = f's3://sns-outputs/{job_uid}/{var}'
     groups = s3_client.ls(job_group_folder)
     for i in range(len(groups)):
-        individual_group_folder = f'{job_group_folder}/{i}/'
+        individual_group_folder = f'{job_group_folder}/{i}'
         images.append(selection_from_groups(individual_group_folder, job_uid))
     images=list(unpack(images)) 
 
     # #################################################################### Sorting The Images ###################################################################################################################################################
 
-
-    final_selection=selection(images, job_uid)[int(number_of_output_images)]   
+    image_urls = [url_image_id_mapper[id] for id in images]
+    final_selection=selection(image_urls, job_uid)[int(number_of_output_images)]   
 
 
     # ############################################################ Creating the output  ###################################################################################################################################################
