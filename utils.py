@@ -90,7 +90,7 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-ou
     cv2.imwrite(tmp.name, image)
     
     with open(tmp.name, 'rb') as f:
-        s3.Bucket(bucket).put_object(Key= f'{folder_name}/{job_uid}/{file_name}.jpg', Body=f, ContentType= 'image/png')
+        s3.Bucket(bucket).put_object(Key= f'{job_uid}/{folder_name}/{file_name}.jpg', Body=f, ContentType= 'image/png')
         f.close()
 
 
