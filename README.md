@@ -31,3 +31,4 @@ A data science application for sorting and selection of relevant photos
  `python main.py -i [image_folder] -n [number_of_images_in_output_required]`<br>
  Here only two arguements are needed, -i is followed by the image folder name and -n indicates the number of images needed as output.<br>
  **Note: Both the arguments are required and '[]' are for demonstration purposes here and not needed during execution**
+--
