@@ -1,7 +1,7 @@
 import dlib
 from scipy.spatial import distance
 import os
-import cv2
+from cv2 import cv2
 from imutils import paths,resize
 from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
 

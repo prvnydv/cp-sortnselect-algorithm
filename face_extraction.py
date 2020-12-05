@@ -1,5 +1,5 @@
 from imutils import paths,resize
-import cv2
+from cv2 import cv2
 import os
 import numpy as np
 from utils import read_pillow_image_from_s3
@@ -40,7 +40,7 @@ def img_to_faces(job_uid, s3_uri, folder):
 	        if (confidence > 0.5):
 	            count += 1
 	            frame = image[startY:endY, startX:endX]
-	            if len(frame)>200 and len(frame[0])>200 and mean>0: # Face dimentions should be atleast (200,200) and blur> 0
-					write_cv2_image_to_s3(frame, folder, f"{i}${s3_uri.split('/')[-1]}", job_uid)
+	            if len(frame)>200 and len(frame[0])>200 and mean>0:
+					          write_cv2_image_to_s3(frame, folder, f"{i}${s3_uri.split('/')[-1]}", job_uid)
 	except:
 		pass
