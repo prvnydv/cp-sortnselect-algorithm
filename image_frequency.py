@@ -33,7 +33,7 @@ def img_frequency(s3_uri,job_uid,face_image_mapper):
             frame = image[startY:endY, startX:endX]
             if len(frame)>200 and len(frame[0])>200 and mean>0:
 
-                #write_cv2_image_to_s3(frame, folder, f'{i}${s3_uri.split("/")[-1]}', job_uid)
+                #write_cv2_image_to_s3(frame, folder, f"{i}${s3_uri.split("/")[-1]}', job_uid)
                 try:
                     # Saving New Faces and appending in image maps when similar image is found
                     #other_img=face_recognition.load_image_file(read_pillow_image_from_s3(f"s3://pical-backend-dev/faces_extracted/{job_uid}/{i}${s3_uri.split("/")[-1]}"))
@@ -41,16 +41,16 @@ def img_frequency(s3_uri,job_uid,face_image_mapper):
                     face_image_list = list(face_image_mapper.keys())
                     flag=0
                     for k in range(len(face_image_list)):
-                        if face_recognition.compare_faces([face_image_mapper[face_image_list[k]]['face_vector']], other_enc)[0]:
+                        if face_recognition.compare_faces([face_image_mapper[face_image_list[k]]['face_vector']], face_enc_of_image)[0]:
                             # Append in Image map if faces are similar
-                            face_image_mapper[face_image_list[k]]['images'].append(f"{s3_uri.split("/")[-1]}")
+                            face_image_mapper[face_image_list[k]]['images'].append(f"{s3_uri.split('/')[-1]}")
                             flag=1
                             break
                         else:
                             continue
                     if flag==0:
                         # Save new face
-                        face_image_mapper[f"{i}${s3_uri.split("/")[-1]}"]={'face_vector':other_enc,'images':[f"{s3_uri.split("/")[-1]}"]}                               
+                        face_image_mapper[f"{i}${s3_uri.split('/')[-1]}"]={'face_vector':face_enc_of_image,'images':[f"{s3_uri.split('/')[-1]}"]}                               
                     
                 except:
                     pass

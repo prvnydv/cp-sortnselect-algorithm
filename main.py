@@ -65,7 +65,7 @@ def consolidated_score():
 
 
     image_id=[]
-    face_files_url=s3_client.ls(f's3://sns-outputs/{job_uid}/faces_extracted')
+    face_files_url=s3_client.ls(f"s3://sns-outputs/{job_uid}/faces_extracted")
     for url in face_files_url:
         name=url.split("$")
         image_id.append(name[1].split(".")[0])
@@ -94,20 +94,20 @@ def consolidated_score():
     group_number=1
     group='group_test'
     img = read_with_cv2_from_generated_temp_file(all_features.iloc[0]['image_id'])
-    write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[0]['image_id']}', job_uid)
+    write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[0]['image_id']}", job_uid)
     for i in range(len(all_features)-3):
         a,b,c,d=get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id'])
         # Checking ith and (i+3)th image
         if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
                 
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+2]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
                 
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+3]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+3]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+3]['image_id']}", job_uid)
                 i+=2
             except:
                 pass
@@ -115,10 +115,10 @@ def consolidated_score():
         elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
                 
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+2]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
 
                 i+=1
             except:
@@ -127,14 +127,14 @@ def consolidated_score():
         elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
             except:
                 pass 
         else: # New group created if none of the above criterion are met
             group_number+=1
             try:
                 img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f'{group_number}/{all_features.iloc[i+1]['image_id']}', job_uid)
+                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
             except:
                 pass
 
@@ -142,10 +142,10 @@ def consolidated_score():
 
     images=[]
     var='group_test'
-    job_group_folder = f's3://sns-outputs/{job_uid}/{var}'
+    job_group_folder = f"s3://sns-outputs/{job_uid}/{var}"
     groups = s3_client.ls(job_group_folder)
     for i in range(len(groups)):
-        individual_group_folder = f'{job_group_folder}/{i}'
+        individual_group_folder = f"{job_group_folder}/{i}"
         images.append(selection_from_groups(individual_group_folder, job_uid))
     images=list(unpack(images)) 
 
@@ -180,7 +180,7 @@ def consolidated_score():
       "input_image_urls" : url_array,
       "number_of_input_images" : len(url_array),
       "number_of_output_images" : number_of_output_images,
-      "output_image_urls" : final_selection['image_s3_url'].tolist()
+      "output_image_urls" : final_selection['image_s3_url'].tolist(),
       "sns version" : "v1.0",
       "timestamp" : current_time
     }

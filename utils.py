@@ -41,7 +41,7 @@ def df_to_s3(df, job_uid, op_name, bucket='sns-outputs'):
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
-    with fs.open(f's3://{bucket}/{path}/{op_name}.csv', 'wb') as f:
+    with fs.open(f"s3://{bucket}/{path}/{op_name}.csv", 'wb') as f:
         f.write(bytes_to_write)
 
 def df_from_s3(job_uid, op_name):
@@ -49,10 +49,10 @@ def df_from_s3(job_uid, op_name):
     aws_secret_access_key = ''
 
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
-    key = f'{job_uid}/{op_name}.csv'
+    key = f"{job_uid}/{op_name}.csv"
     bucket = 'sns-outputs'
 
-    df = pd.read_csv(fs.open(f'{bucket}/{key}', mode='rb'))
+    df = pd.read_csv(fs.open(f"{bucket}/{key}", mode='rb'))
 
     return df
 
@@ -90,7 +90,7 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-ou
     cv2.imwrite(tmp.name, image)
     
     with open(tmp.name, 'rb') as f:
-        s3.Bucket(bucket).put_object(Key= f'{job_uid}/{folder_name}/{file_name}.jpg', Body=f, ContentType= 'image/png')
+        s3.Bucket(bucket).put_object(Key= f"{job_uid}/{folder_name}/{file_name}.jpg", Body=f, ContentType= 'image/png')
         f.close()
 
 

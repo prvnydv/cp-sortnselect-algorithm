@@ -41,6 +41,6 @@ def img_to_faces(job_uid, s3_uri, folder):
 	            count += 1
 	            frame = image[startY:endY, startX:endX]
 	            if len(frame)>200 and len(frame[0])>200 and mean>0: # Face dimentions should be atleast (200,200) and blur> 0
-									write_cv2_image_to_s3(frame, folder, f'{i}${s3_uri.split("/")[-1]}', job_uid)
+					write_cv2_image_to_s3(frame, folder, f"{i}${s3_uri.split('/')[-1]}", job_uid)
 	except:
 		pass

@@ -15,13 +15,13 @@ def single_select(individual_group_folder, job_uid):
     for file in files:
         ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
         if file.endswith(ext):
-            img_to_faces(job_uid, s3_uri, f'single_selection_from_groups/{group_number}')
+            img_to_faces(job_uid, s3_uri, f"single_selection_from_groups/{group_number}")
 
     # Selecting the best image based on emotion score
     index=[]
     image_id=[]
     happy=[]
-    face_path= f's3://sns-outputs/{job_uid}/single_selection_from_groups/{group_number}'
+    face_path= f"s3://sns-outputs/{job_uid}/single_selection_from_groups/{group_number}"
     faces=s3_client.ls(face_path)
     for face in faces:
         name=face.split("/")[-1].split("$")
@@ -42,12 +42,12 @@ def happy_selection(individual_group_folder, job_uid, sub_select_image_ids):
     for file in files:
         ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
         if file.endswith(ext):
-            img_to_faces(job_uid, s3_uri, f'happy_selection_from_groups/{group_number}')
+            img_to_faces(job_uid, s3_uri, f"happy_selection_from_groups/{group_number}")
 
     index=[]
     image_id=[]
     happy=[]
-    face_path= f's3://sns-outputs/{job_uid}/happy_selection_from_groups/{group_number}'
+    face_path= f"s3://sns-outputs/{job_uid}/happy_selection_from_groups/{group_number}"
     files=s3_client.ls(face_path)
     for face in faces:
         name=[]
