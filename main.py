@@ -95,32 +95,33 @@ def consolidated_score():
 
     group_number=1
     group='group_test'
-    img = read_with_cv2_from_generated_temp_file(all_features.iloc[0]['image_id'])
-    write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[0]['image_id']}", job_uid)
+    print(f"Image id of 0th index {all_features.iloc[0]['image_id']}")
+    img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[0]['image_id']])
+    write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[0]['image_id']}", job_uid)
     for i in range(len(all_features)-3):
-        a,b,c,d=get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id']),get_colors(all_features.iloc[i]['image_id'])
+        a,b,c,d=get_colors(url_image_id_mapper[all_features.iloc[i]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+1]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+2]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+3]['image_id']])
         # Checking ith and (i+3)th image
         if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
                 
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
                 
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+3]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+3]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+3]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+3]['image_id']}", job_uid)
                 i+=2
             except:
                 pass
         # Checking ith and (i+2)th image
         elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
                 
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+2]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
 
                 i+=1
             except:
@@ -128,15 +129,15 @@ def consolidated_score():
         # Checking ith and (i+1)th image
         elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
             except:
                 pass 
         else: # New group created if none of the above criterion are met
             group_number+=1
             try:
-                img = read_with_cv2_from_generated_temp_file(all_features.iloc[i+1]['image_id'])
-                write_cv2_image_to_s3(img, group, f"{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
             except:
                 pass
 
