@@ -9,8 +9,9 @@ import cv2
 import pandas as pd
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 
+
 def get_date_taken(s3_uri):
-    s3 = initiate_s3_resource_instance()
+    s3 = initiate_s3_client_instance()
     bucket, key = parse_bucket_key(s3_uri)
     file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
 
@@ -140,6 +141,18 @@ def list_all_objects_of_a_bucket_folder(bucket_name:str, folder_name:str):
         if folder_name in file.key:
             s3_uris.append(f's3://{bucket_name}/{file.key}')
     
+    return s3_uris
+
+def list_key_bucket_object(bucket_name:str, folder_name:str):
+    s3 = initiate_s3_resource_instance()
+    bucket = s3.Bucket(bucket_name)
+
+    s3_uris = []
+    files_in_s3 = bucket.objects.all()
+    for file in list(files_in_s3):
+        if folder_name in file.key:
+            s3_uris.append(file)
+
     return s3_uris
 
 def load_image_for_keras(s3_uri, target_size):

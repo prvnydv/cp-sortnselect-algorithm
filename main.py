@@ -15,6 +15,7 @@ import cv2
 import shutil
 from utils import s3_client
 from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
+from utils import list_all_objects_of_a_bucket_folder, list_key_bucket_object
 
 app = Flask(__name__)
 
@@ -143,11 +144,14 @@ def consolidated_score():
 
     images=[]
     var='group_test'
-    job_group_folder = f"s3://sns-outputs/{job_uid}/{var}"
-    groups = s3_client.ls(job_group_folder)
+    job_group_folder = f"s3://pical-backend-dev/{job_uid}/{var}"
+    groups = list_key_bucket_object('pical-backend-dev', var)
+    groups = [group.key.split("/")[2] for group in groups]
+    groups = list(set(groups))
     for i in range(len(groups)):
-        individual_group_folder = f"{job_group_folder}/{i}"
-        images.append(selection_from_groups(individual_group_folder, job_uid))
+        print(f'Length of all groups {len(groups)}')
+        individual_group_folder = f"{job_group_folder}/group_{i+1}"
+        images.append(selection_from_groups(individual_group_folder, job_uid, f'{var}/group_{i+1}'))
     images=list(unpack(images)) 
 
     # #################################################################### Sorting The Images ###################################################################################################################################################
