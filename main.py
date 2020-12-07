@@ -37,6 +37,7 @@ def consolidated_score():
         image_id = url.split("/")[-1]
         url_image_id_mapper[image_id] = url
 
+    print("Generated Image Url mapper")
     ##################################################################### Removing All files except images ###################################################################################################################################################
 
     for url in url_array:
@@ -44,7 +45,7 @@ def consolidated_score():
         if not url.endswith(ext):
             url_array.remove(url)
 
-
+    print(f"size of image_url is {len(url_array)}")
 
     ############################################################################ Dublication Removal ###################################################################################################################################################
 
@@ -52,15 +53,15 @@ def consolidated_score():
     for i in range(2):
         # 16 --> Hash Length
         # 240 --> Threshold
-        duplicate_images = remove_similar_from_dir(url_array,16,240,job_uid)
-        url_array.remove(duplicate_images)
-
+        url_array = remove_similar_from_dir(url_array,16,240,job_uid)
+    print(f"size of w/o_dup_image_url is {len(url_array)}")
 
     ##################################################################### Removing All Images except images that have faces in them ###################################################################################################################################################
 
     for url in url_array:
         ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
         if url.endswith(ext):
+            print(f'Running Face Extraction Model')
             img_to_faces(job_uid, url, 'image_with_faces')   
 
 
@@ -156,9 +157,17 @@ def consolidated_score():
     images=list(unpack(images)) 
 
     # #################################################################### Sorting The Images ###################################################################################################################################################
-
+    print("################################################################################################################")
+    print(f"Final length of selected images :::::::: {len(images)}")
+    print("################################################################################################################")
+    
     image_urls = [url_image_id_mapper[id] for id in images]
-    final_selection=selection(image_urls, job_uid)[int(number_of_output_images)]   
+    final_selection=selection(image_urls, job_uid)   
+    print("################################################################################################################")
+    print(f"Final length of sorted df :::::::: {len(final_selection)}")
+    print("################################################################################################################")
+
+    final_selection = final_selection[0:int(number_of_output_images)]
 
 
     # ############################################################ Creating the output  ###################################################################################################################################################
