@@ -81,26 +81,32 @@ def read_pillow_image_from_s3(s3_uri):
     return Image.open(BytesIO(file_byte_string))
 
 def read_with_cv2_from_generated_temp_file(s3_uri):
-    s3 = initiate_s3_resource_instance()
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
+    region_name = 'ap-south-1'
+
+    s3 = boto3.client('s3', aws_access_key_id = aws_access_key_id, aws_secret_access_key = aws_secret_access_key, 
+                      region_name = region_name)
+
     bucket, key = parse_bucket_key(s3_uri)
 
-    object = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
     tmp = tempfile.NamedTemporaryFile()
     with open(tmp.name, 'wb') as f:
-        object.download_fileobj(f)
+        s3.download_fileobj(bucket, key, f)
         img=cv2.imread(tmp.name)
 
         f.close()
     
     return img
 
-def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-outputs'):
+def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='pical-backend-dev'):
+    print(f'Writing Images int o s3')
     s3 = initiate_s3_resource_instance()
     tmp = tempfile.NamedTemporaryFile(suffix='.jpg')
     cv2.imwrite(tmp.name, image)
     
     with open(tmp.name, 'rb') as f:
-        s3.Bucket(bucket).put_object(Key= f"{job_uid}/{folder_name}/{file_name}.jpg", Body=f, ContentType= 'image/png')
+        s3.Bucket(bucket).put_object(Key= f"{job_uid}/{folder_name}/{file_name}", Body=f, ContentType= 'image/png')
         f.close()
 
 
