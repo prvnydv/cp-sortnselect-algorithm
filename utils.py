@@ -130,6 +130,18 @@ def check_if_file_present(bucket, key):
     else:
         return False
 
+def list_all_objects_of_a_bucket_folder(bucket_name:str, folder_name:str):
+    s3 = initiate_s3_resource_instance()
+    bucket = s3.Bucket(bucket_name)
+
+    s3_uris = []
+    files_in_s3 = bucket.objects.all()
+    for file in list(files_in_s3):
+        if folder_name in file.key:
+            s3_uris.append(f's3://{bucket_name}/{file.key}')
+    
+    return s3_uris
+
 def load_image_for_keras(s3_uri, target_size):
     aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
     aws_secret_access_key = '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'

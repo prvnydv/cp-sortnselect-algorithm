@@ -8,6 +8,7 @@ from gender import gender_pred
 from age import face_age
 import numpy as np
 import shutil
+from utils import list_all_objects_of_a_bucket_folder
 
 # Final sorting of all images that are selected from groups
 def selection(urls, job_uid):
@@ -21,8 +22,7 @@ def selection(urls, job_uid):
     image_id=[]
     happy=[]
     face_count=[]
-    face_path="s3://pical-backend-dev/{job_uid}/face_extraction_for_sorting"
-    files=s3_client.ls(face_path)
+    files=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'face_extraction_for_sorting')
     for file in files:
         name=[]
         name=file.split("/")[-1].split("$")

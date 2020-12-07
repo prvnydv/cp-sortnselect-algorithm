@@ -65,16 +65,17 @@ def consolidated_score():
 
 
     image_id=[]
-    face_files_url=s3_client.ls(f"s3://sns-outputs/{job_uid}/faces_extracted")
+    face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_with_faces')
     for url in face_files_url:
         name=url.split("$")
-        image_id.append(name[1].split(".")[0])
+        image_id.append(name[-1])
     image_id=set(image_id)
 
-    only_filenames = [url.split("/")[-1].split(".")[0] for url in url_array]
+    only_filenames = [url.split("/")[-1] for url in url_array]
     for i in range(len(only_filenames)):
         if only_filenames[i] not in image_id:
-            del url_array[i]  
+            url_element = f's3://pical-backend-dev/images/{only_filenames[i]}'
+            url_array.remove(url_element)  
 
     ##################################################################### Sorting Images based on timestamp ###################################################################################################################################################
 
