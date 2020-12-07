@@ -4,8 +4,10 @@ import s3fs
 from PIL import Image
 from io import BytesIO
 from urllib.parse import urlparse
-from tempfile import NamedTemporaryFile
+import tempfile
 import cv2
+import pandas as pd
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 
 def get_date_taken(s3_uri):
     s3 = initiate_s3_resource_instance()
@@ -127,4 +129,24 @@ def check_if_file_present(bucket, key):
         return True
     else:
         return False
+
+def load_image_for_keras(s3_uri, target_size):
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
+    region_name = 'ap-south-1'
+
+    s3 = boto3.client('s3', aws_access_key_id = aws_access_key_id, aws_secret_access_key = aws_secret_access_key, 
+                      region_name = region_name)
+
+    bucket, key = parse_bucket_key(s3_uri)
+
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, 'wb') as f:
+        s3.download_fileobj(bucket, key, f)
+        img=load_img(tmp.name, target_size=target_size)
+
+        f.close()
+    
+    return img
+
 
