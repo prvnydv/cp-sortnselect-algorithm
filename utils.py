@@ -25,8 +25,8 @@ def unpack(seq):
         yield seq
 
 def initiate_s3_resource_instance():
-    aws_access_key_id = ''
-    aws_secret_access_key = ''
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
     region_name = 'ap-south-1'
     s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id, 
                               aws_secret_access_key=aws_secret_access_key, 
@@ -34,23 +34,33 @@ def initiate_s3_resource_instance():
 
     return s3
 
-def df_to_s3(df, job_uid, op_name, bucket='sns-outputs'):
-    aws_access_key_id = ''
-    aws_secret_access_key = ''
+def initiate_s3_client_instance():
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
+    region_name = 'ap-south-1'
+    s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, 
+                              aws_secret_access_key=aws_secret_access_key, 
+                              region_name=region_name)
+
+    return s3
+
+def df_to_s3(df, job_uid, op_name, bucket='pical-backend-dev'):
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
 
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
-    with fs.open(f"s3://{bucket}/{path}/{op_name}.csv", 'wb') as f:
+    with fs.open(f"s3://{bucket}/{path}/{op_name}", 'wb') as f:
         f.write(bytes_to_write)
 
 def df_from_s3(job_uid, op_name):
-    aws_access_key_id = ''
-    aws_secret_access_key = ''
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
 
     fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
     key = f"{job_uid}/{op_name}.csv"
-    bucket = 'sns-outputs'
+    bucket = 'pical-backend-dev'
 
     df = pd.read_csv(fs.open(f"{bucket}/{key}", mode='rb'))
 
@@ -64,7 +74,7 @@ def parse_bucket_key(s3_uri):
     return bucket, key
 
 def read_pillow_image_from_s3(s3_uri):
-    s3 = initiate_s3_resource_instance()
+    s3 = initiate_s3_client_instance()
     bucket, key = parse_bucket_key(s3_uri)
     file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
     
@@ -95,9 +105,20 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='sns-ou
 
 
 def s3_client():
-    aws_access_key_id = ''
-    aws_secret_access_key = ''
+    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
+    aws_secret_access_key = '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'
     return s3fs.S3FileSystem(anon=False,
                              key=aws_access_key_id,
                              secret=aws_secret_access_key,
                              use_ssl=False)
+
+def check_if_file_present(bucket, key):
+    s3_resource = initiate_s3_resource_instance()
+    bucket = s3_resource.Bucket(bucket)
+    key = key
+    objs = list(bucket.objects.filter(Prefix=key))
+    if len(objs) > 0 and objs[0].key == key:
+        return True
+    else:
+        return False
+

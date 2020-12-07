@@ -9,25 +9,31 @@ from urllib.parse import urlparse
 from utils import initiate_s3_resource_instance
 from utils import df_to_s3, df_from_s3
 import s3fs
-from utils import read_pillow_image_from_s3
+from utils import read_pillow_image_from_s3, check_if_file_present
+from utils import initiate_s3_client_instance
 
-
-def img_hash(url, hash_size): # fetching image hashes   
-  return imagehash.phash(read_pillow_image_from_s3(url),hash_size=hash_size)
+def img_hash(url, hash_size):
+    print("retunr img_hash")
+     # fetching image hashes
+    print(f"hash :: {read_pillow_image_from_s3(url)}")
+    return imagehash.phash(read_pillow_image_from_s3(url),hash_size=hash_size)
 
 
 def get_hashes(url_array, hash_size, job_uid): # Adding the hashes to csv for future use
-  hash_file = f"img_hashes_{hash_size}.csv"
-  if not os.path.isfile(hash_file):
-      hashes = pd.DataFrame()
-  else:
+  hash_file = f"img_hashes_{hash_size}"
+  if check_if_file_present('pical-backend-dev', f"{job_uid}/{hash_file}"):
       hashes = df_from_s3(job_uid, hash_file)
+  else:
+      hashes = pd.DataFrame()
+
   new_hashes_calculated = 0
   for url in url_array:
-      if 'file' not in hashes.columns or url not in list(hashes['file']):
-          try:                                             
+      if ('file' not in hashes.columns) or (url not in list(hashes['file'])):
+          try:                     
+              print("I am here")                        
               new_hashes_calculated = new_hashes_calculated + 1
               result = {'file': url,'hash':img_hash(url,hash_size)}
+              print(f"result  :: {result}")
               hashes = hashes.append(result,ignore_index=True)
               if (new_hashes_calculated % 200 == 199):
                   df_to_s3(hashes[['file','hash']], job_uid, hash_file)
@@ -39,7 +45,7 @@ def get_hashes(url_array, hash_size, job_uid): # Adding the hashes to csv for fu
 
 
 def read_hashes(hash_size, job_uid): # formatting the hash reading in csv
-  hash_file = f"img_hashes_{hash_size}.csv"
+  hash_file = f"img_hashes_{hash_size}"
   hashes = df_from_s3(job_uid, hash_file)[['file','hash']]
   lambdafunc = lambda x: pd.Series([int(i,16) for key,i in zip(range(0,len(x['hash'])),x['hash'])])
   newcols = hashes.apply(lambdafunc, axis=1)
@@ -68,7 +74,7 @@ def remove_similar_from_dir(url_array,hash_size,threshold, job_uid):
       if keep[i] in rem:
           similar.remove(rem[i])
   ## remove all the similar images for entire array
-  to_be_deleted_items = [url_array[index] for i in similar]
+  to_be_deleted_items = [url_array[i] for i in list(set(similar))]
   for element in to_be_deleted_items:
       url_array.remove(element)
   
