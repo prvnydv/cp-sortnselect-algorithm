@@ -1,6 +1,5 @@
 
-from flask import request
-from flask import Flask, jsonify
+from flask import *
 from datetime import datetime
 
 from dublicate import *
@@ -12,10 +11,10 @@ from image_frequency import img_frequency
 import time
 from similarity import get_colors,color_diff
 import cv2
-import shutil
 from utils import s3_client
 from utils import read_with_cv2_from_generated_temp_file, write_cv2_image_to_s3
 from utils import list_all_objects_of_a_bucket_folder, list_key_bucket_object
+import requests
 
 app = Flask(__name__)
 

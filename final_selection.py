@@ -7,7 +7,6 @@ from utils import s3_client
 from gender import gender_pred
 from age import face_age
 import numpy as np
-import shutil
 from utils import list_all_objects_of_a_bucket_folder
 
 # Final sorting of all images that are selected from groups
