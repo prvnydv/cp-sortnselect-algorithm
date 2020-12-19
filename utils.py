@@ -53,7 +53,7 @@ def df_to_s3(df, job_uid, op_name, bucket='pical-backend-dev'):
 
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
-    fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
+    fs = s3fs.S3FileSystem(anon=False, key=aws_access_key_id, secret=aws_secret_access_key, use_ssl=False)
     with fs.open(f"s3://{bucket}/{path}/{op_name}", 'wb') as f:
         f.write(bytes_to_write)
 
@@ -61,7 +61,7 @@ def df_from_s3(job_uid, op_name):
     aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
     aws_secret_access_key = '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'
 
-    fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)
+    fs = s3fs.S3FileSystem(anon=False, key=aws_access_key_id, secret=aws_secret_access_key, use_ssl=False)
     key = f"{job_uid}/{op_name}.csv"
     bucket = 'pical-backend-dev'
 
