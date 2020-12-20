@@ -11,24 +11,24 @@ from utils import list_all_objects_of_a_bucket_folder
 
 # Final sorting of all images that are selected from groups
 def selection(urls, job_uid):
-    for url in urls:
-        ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
-        if url.endswith(ext):
-            img_to_faces(job_uid, url, 'face_extraction_for_sorting')
+    url_ids = [url.split("/")[-1] for url in urls]
 
     # Emotion scores of images 
     index=[]
     image_id=[]
     happy=[]
     face_count=[]
-    files=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'face_extraction_for_sorting')
+    files=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
+
+
     for file in files:
-        name=[]
-        name=file.split("/")[-1].split("$")
-        happy.append(expression_image(file)[0])
-        index.append(name[0])
-        image_id.append(name[1])
-        face_count.append(1)
+        if file.split("/")[-1].split("$")[-1] in url_ids:
+            name=[]
+            name=file.split("/")[-1].split("$")
+            happy.append(expression_image(file)[0])
+            index.append(name[0])
+            image_id.append(name[1])
+            face_count.append(1)
 
     data= list(zip(index,image_id,happy,face_count))
     final_data = pd.DataFrame(data, columns = ['index', 'image_id','happy','face_count'])
@@ -40,7 +40,8 @@ def selection(urls, job_uid):
     eyes_focus=[]
 
     for file in files:
-        eyes_focus.append(eyes_dir(file))
+        if file.split("/")[-1].split("$")[-1] in url_ids:
+            eyes_focus.append(eyes_dir(file))
 
     data= list(zip(index,image_id,eyes_focus))
     final_data = pd.DataFrame(data, columns = ['index', 'image_id','not_candid'])
@@ -52,8 +53,9 @@ def selection(urls, job_uid):
     # Gender scores of images
     gender=[]
     for file in files:
-        result=gender_pred(file)
-        gender.append(result[0][0][0])
+        if file.split("/")[-1].split("$")[-1] in url_ids:
+            result=gender_pred(file)
+            gender.append(result[0][0][0])
 
 
     data= list(zip(index,image_id,gender))
@@ -64,8 +66,9 @@ def selection(urls, job_uid):
     # Age scores of images
     age=[]
     for file in files:
-        result=face_age(file)
-        age.append(result)
+        if file.split("/")[-1].split("$")[-1] in url_ids:
+            result=face_age(file)
+            age.append(result)
 
     data= list(zip(index,image_id,age))
     final_data = pd.DataFrame(data, columns = ['index', 'image_id','age'])

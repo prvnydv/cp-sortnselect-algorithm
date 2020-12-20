@@ -7,7 +7,7 @@ from utils import read_pillow_image_from_s3
 from utils import write_cv2_image_to_s3, read_with_cv2_from_generated_temp_file
 
 model_face_extraction = cv2.dnn.readNetFromCaffe("face_extraction_model/deploy.prototxt", 'face_extraction_model/weights.caffemodel')
-def img_frequency(s3_uri,job_uid,face_image_mapper):
+def img_frequency(s3_uri,face_image_mapper):
 
     image = read_with_cv2_from_generated_temp_file(s3_uri)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -33,10 +33,8 @@ def img_frequency(s3_uri,job_uid,face_image_mapper):
             frame = image[startY:endY, startX:endX]
             if len(frame)>200 and len(frame[0])>200 and mean>0:
 
-                #write_cv2_image_to_s3(frame, folder, f"{i}${s3_uri.split("/")[-1]}', job_uid)
                 try:
                     # Saving New Faces and appending in image maps when similar image is found
-                    #other_img=face_recognition.load_image_file(read_pillow_image_from_s3(f"s3://pical-backend-dev/faces_extracted/{job_uid}/{i}${s3_uri.split("/")[-1]}"))
                     face_enc_of_image=face_recognition.face_encodings(frame)[0]
                     face_image_list = list(face_image_mapper.keys())
                     flag=0

@@ -61,12 +61,12 @@ def consolidated_score():
         ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
         if url.endswith(ext):
             print(f'Running Face Extraction Model')
-            img_to_faces(job_uid, url, 'image_with_faces')   
+            img_to_faces(job_uid, url, 'image_faces')   
 
 
 
     image_id=[]
-    face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_with_faces')
+    face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
     for url in face_files_url:
         name=url.split("$")
         image_id.append(name[-1])
@@ -92,36 +92,28 @@ def consolidated_score():
 
     # #################################################################### Grouping Images based on Color Palette  ###################################################################################################################################################
 
-
+    grouped_url_array = {}
     group_number=1
-    group='group_test'
-    print(f"Image id of 0th index {all_features.iloc[0]['image_id']}")
-    img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[0]['image_id']])
-    write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[0]['image_id']}", job_uid)
+    group=f"group_{group_number}"
+    grouped_url_array[group] = []
+    grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[0]['image_id']])
     for i in range(len(all_features)-3):
         a,b,c,d=get_colors(url_image_id_mapper[all_features.iloc[i]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+1]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+2]['image_id']]), get_colors(url_image_id_mapper[all_features.iloc[i+3]['image_id']])
         # Checking ith and (i+3)th image
         if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
-                
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
-                
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+3]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+3]['image_id']}", job_uid)
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+3]['image_id']])
+
                 i+=2
             except:
                 pass
         # Checking ith and (i+2)th image
         elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
-                
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+2]['image_id']}", job_uid)
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+2]['image_id']])
 
                 i+=1
             except:
@@ -129,30 +121,22 @@ def consolidated_score():
         # Checking ith and (i+1)th image
         elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
             try:
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
             except:
                 pass 
         else: # New group created if none of the above criterion are met
             group_number+=1
             try:
-                img = read_with_cv2_from_generated_temp_file(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
-                write_cv2_image_to_s3(img, group, f"group_{group_number}/{all_features.iloc[i+1]['image_id']}", job_uid)
+                grouped_url_array[group].append(url_image_id_mapper[all_features.iloc[i+1]['image_id']])
             except:
                 pass
 
     # #################################################################### Selection of Images from the groups ###################################################################################################################################################
-
-    images=[]
-    var='group_test'
-    job_group_folder = f"s3://pical-backend-dev/{job_uid}/{var}"
-    groups = list_key_bucket_object('pical-backend-dev', var)
-    groups = [group.key.split("/")[2] for group in groups]
-    groups = list(set(groups))
-    for i in range(len(groups)):
-        print(f'Length of all groups {len(groups)}')
-        individual_group_folder = f"{job_group_folder}/group_{i+1}"
-        images.append(selection_from_groups(individual_group_folder, job_uid, f'{var}/group_{i+1}'))
+    images = []
+    print(f"Length of all groups :: {len(list(grouped_url_array.keys()))}")
+    for key, val in grouped_url_array.items():
+        print(f"Total images in the {key} :: {len(val)}")
+        images.append(selection_from_groups(val))
     images=list(unpack(images)) 
 
     # #################################################################### Sorting The Images ###################################################################################################################################################

@@ -10,26 +10,21 @@ from utils import list_all_objects_of_a_bucket_folder
 
 
 
-def single_select(individual_group_folder, job_uid, group_name):
+def single_select(imgs):
 	# Selecting single image from groups with 3 or less number of images
-  imgs=list_all_objects_of_a_bucket_folder('pical-backend-dev', group_name)
-  group_number = group_name.split("_")[-1]
-  print(f'Group Number is {group_number}')
-  for img in imgs:
-    ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
-    if img.endswith(ext):
-        img_to_faces(job_uid, img, f"single_selection_from_groups/group_{group_number}")
+  img_ids = [img.split("/")[-1] for img in imgs]
 
   # Selecting the best image based on emotion score
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'single_selection_from_groups/group_{group_number}')
+  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
   for face in faces:
-    name=face.split("/")[-1].split("$")
-    happy.append(expression_image(face)[0])
-    index.append(name[0])
-    image_id.append(name[1])
+    if face.split("/")[-1].split("$")[-1] in img_ids:
+      name=face.split("/")[-1].split("$")
+      happy.append(expression_image(face)[0])
+      index.append(name[0])
+      image_id.append(name[1])
 
   data= list(zip(index,image_id,happy))
   final_data = pd.DataFrame(data, columns = ['index', 'image_id','happy'])
@@ -39,22 +34,18 @@ def single_select(individual_group_folder, job_uid, group_name):
   return happy.iloc[0]['image_id']
 
 
-def happy_selection(individual_group_folder, job_uid, sub_select_image_ids, group_name):
-  files=list_all_objects_of_a_bucket_folder('pical-backend-dev', group_name)
-  group_number = group_name.split("_")[-1]
-  for file in files:
-    ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
-    if file.endswith(ext):
-      img_to_faces(job_uid, file, f"happy_selection_from_groups/group_{group_number}")
+def happy_selection(images):
+  file_ids = images
+  files = [f"s3://pical-backend-dev/images/{image}" for image in images]
 
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'happy_selection_from_groups/group_{group_number}')
+  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
   for face in faces:
-    name=[]
-    name=face.split("/")[-1].split("$")
-    if name[1] in sub_select_image_ids:
+    if face.split("/")[-1].split("$")[-1] in file_ids:
+      name=[]
+      name=face.split("/")[-1].split("$")
       happy.append(expression_image(face)[0])
       index.append(name[0])
       image_id.append(name[1])
@@ -67,23 +58,21 @@ def happy_selection(individual_group_folder, job_uid, sub_select_image_ids, grou
   return happy
 
 
-def selection_from_groups(individual_group_folder, job_uid, group_name):
-  imgs=list_all_objects_of_a_bucket_folder('pical-backend-dev', group_name)
-  print(f"Images of group::{group_name.split('_')[-1]} are {imgs}")
+def selection_from_groups(images):
   # If 1 image group then we select it 
-  if len(imgs)==1:
-    return imgs[0].split("/")[-1]
+  if len(images)==1:
+    return images[0].split("/")[-1]
   # If 3 or lrss image group then single image selection based on emotion scores
-  elif len(imgs)<4:
-    return single_select(individual_group_folder, job_uid, group_name)
+  elif len(images)<4:
+    return single_select(images)
   # If none of the above then multiple selection 
   # Images that have less occuring faces are selected above 0.75 emotion score threshold
   else:
     face_image_mapper=dict()
-    for i in range(len(imgs)):
+    for i in range(len(images)):
       ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
-      if imgs[i].endswith(ext):
-        face_image_mapper = img_frequency(imgs[i], job_uid, face_image_mapper)
+      if images[i].endswith(ext):
+        face_image_mapper = img_frequency(images[i], face_image_mapper)
 
     face_image_list=list(face_image_mapper.keys())
     for i in range(len(face_image_list)):
@@ -92,7 +81,7 @@ def selection_from_groups(individual_group_folder, job_uid, group_name):
       x=[]
       for i in range(len(face_image_list)):
         # selecting only faces that occur in less than 50% of the total number of images in that group
-        if len(face_image_mapper[face_image_list[i]]['images'])< 0.5*len(imgs):
+        if len(face_image_mapper[face_image_list[i]]['images'])< 0.5*len(images):
           x.append(face_image_mapper[face_image_list[i]]['images'])
       
       x = [img for l in x for img in l]
@@ -102,10 +91,10 @@ def selection_from_groups(individual_group_folder, job_uid, group_name):
         sub_select_image_ids=list(set(x))
       # If no face occurs less than 50% of the total number of images in that group then we go back to single selection
       if len(sub_select_image_ids)==0:
-        return single_select(individual_group_folder, job_uid, group_name)
+        return single_select(images)
       else:
       # Else we select all images above 0.75 threshold emotion score
-        a=happy_selection(individual_group_folder, job_uid, sub_select_image_ids, group_name)
+        a=happy_selection(sub_select_image_ids)
         a.reset_index(inplace=True)
         for i in range(len(a)):
           if a.iloc[i]['happy']> 0.75:
