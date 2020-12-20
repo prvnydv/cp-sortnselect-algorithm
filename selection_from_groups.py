@@ -36,7 +36,7 @@ def single_select(imgs):
 
 def happy_selection(images):
   file_ids = images
-  files = [f"s3://pical-backend-dev/images/{image}" for image in images]
+  files = [f"s3://pical-backend-dev/store/{image}" for image in images]
 
   index=[]
   image_id=[]
