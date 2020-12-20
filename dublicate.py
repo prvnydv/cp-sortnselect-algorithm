@@ -36,11 +36,11 @@ def get_hashes(url_array, hash_size, job_uid): # Adding the hashes to csv for fu
               print(f"result  :: {result}")
               hashes = hashes.append(result,ignore_index=True)
               if (new_hashes_calculated % 200 == 199):
-                  df_to_s3(hashes[['file','hash']], job_uid, hash_file)
+                  df_to_s3(hashes[['file','hash']], job_uid, f"{hash_file}.csv")
           except:
               pass 
   if new_hashes_calculated:
-      df_to_s3(hashes[['file','hash']], job_uid, hash_file)    
+      df_to_s3(hashes[['file','hash']], job_uid, f"{hash_file}.csv")    
   return read_hashes(hash_size, job_uid)
 
 
@@ -73,6 +73,7 @@ def remove_similar_from_dir(url_array,hash_size,threshold, job_uid):
   for i in range(len(keep)):
       if keep[i] in rem:
           similar.remove(rem[i])
+  print(f"Similar images index  :: {similar}")
   ## remove all the similar images for entire array
   to_be_deleted_items = [url_array[i] for i in list(set(similar))]
   for element in to_be_deleted_items:
