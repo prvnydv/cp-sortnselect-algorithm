@@ -29,6 +29,7 @@ def return_status():
         url_array = request.json['url_array']
         number_of_output_images = request.json['number_of_output_images']
         job_uid = request.json['job_uid']
+        process_id = request.json['process_id']
         date_format = "%Y-%m-%d %H:%M:%S"
         current_time = datetime.strftime(datetime.now(), date_format)
         
@@ -176,20 +177,22 @@ def return_status():
 
         final_selection['image_s3_url'] = final_selection.apply(lambda row: url_image_id_mapper[row['image_id']], axis=1)
 
-        result = {
-        "number_of_output_images" : number_of_output_images,
-        "output_image_urls" : final_selection['image_s3_url'].tolist(),
-        "sns version" : "v1.0",
-        "timestamp" : current_time
-        }
+        result = {"image_processing_selection_sorting_process" : {
+            "output_raw_json" : str({
+                'number_of_output_images' : number_of_output_images,
+                'output_image_urls' : final_selection['image_s3_url'].tolist(),
+                'sns version' : 'v1.0',
+                'timestamp' : current_time }),
+            "status" : "success"
+        }}
 
         print("hello world")
-        url = 'https://webhook.site/51362658-a336-4ca4-b76a-1a1d961d1773'
-        x = requests.post(url, data=jsonify(result))
+        url = f"http://localhost:5000/image_processing/selection_sorting_processes/{process_id}"
+        x = requests.patch(url, json=result)
 
     """Return first the response and tie the consolidated_score to a thread"""
     Thread(target = consolidated_score).start()
-    return jsonify('Response 200')
+    return jsonify({"status" : "ongoing", "message" : "We have Received the request. Please wait for 5 minutes wfor Job to complete"})
     
 if __name__ == '__main__':
     app.run(debug=True, port=8877, host = '0.0.0.0')
