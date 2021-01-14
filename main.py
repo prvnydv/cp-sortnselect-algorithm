@@ -80,9 +80,11 @@ def return_status():
         image_id=set(image_id)
 
         only_filenames = [url.split("/")[-1] for url in url_array]
+        images_without_people = []
         for i in range(len(only_filenames)):
             if only_filenames[i] not in image_id:
                 url_element = f's3://pical-backend-dev/store/{only_filenames[i]}'
+                images_without_people.append(url_element)
                 url_array.remove(url_element)  
 
         ##################################################################### Sorting Images based on timestamp ###################################################################################################################################################
@@ -181,6 +183,7 @@ def return_status():
             "output_raw_json" : str({
                 'number_of_output_images' : number_of_output_images,
                 'output_image_urls' : final_selection['image_s3_url'].tolist(),
+                'images_without_people' : images_without_people,
                 'sns version' : 'v1.0',
                 'timestamp' : current_time }),
             "status" : "success"
