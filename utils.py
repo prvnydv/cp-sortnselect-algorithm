@@ -126,7 +126,9 @@ def check_if_file_present(bucket, key):
     bucket = s3_resource.Bucket(bucket)
     key = key
     objs = list(bucket.objects.filter(Prefix=key))
-    if len(objs) > 0 and objs[0].key == key:
+    print(f"Objects :: {objs}")
+    print(f"Key of the object :: {key}")
+    if len(objs) > 0 and objs[0].key == f"{key}.csv":
         return True
     else:
         return False
