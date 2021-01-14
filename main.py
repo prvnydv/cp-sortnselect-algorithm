@@ -43,7 +43,7 @@ def return_status():
         for url in url_array:
             image_id = url.split("/")[-1]
             url_image_id_mapper[image_id] = url
-
+        
         print("Generated Image Url mapper")
         ##################################################################### Removing All files except images ###################################################################################################################################################
         for url in url_array:
@@ -67,23 +67,21 @@ def return_status():
         for url in url_array:
             ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
             if url.endswith(ext):
-                print(f'Running Face Extraction Model')
                 img_to_faces(job_uid, url, 'image_faces')   
 
 
 
         image_id=[]
-        face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
+        face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
         for url in face_files_url:
             name=url.split("$")
             image_id.append(name[-1])
         image_id=set(image_id)
-
         only_filenames = [url.split("/")[-1] for url in url_array]
         images_without_people = []
         for i in range(len(only_filenames)):
             if only_filenames[i] not in image_id:
-                url_element = f's3://pical-backend-dev/store/{only_filenames[i]}'
+                url_element = url_image_id_mapper[only_filenames[i]]
                 images_without_people.append(url_element)
                 url_array.remove(url_element)  
 
@@ -158,7 +156,7 @@ def return_status():
         print(f"Length of all groups :: {len(list(grouped_url_array.keys()))}")
         for key, val in grouped_url_array.items():
             print(f"Total images in the {key} :: {len(val)}")
-            images.append(selection_from_groups(val))
+            images.append(selection_from_groups(val, job_uid))
         images=list(unpack(images)) 
 
         # #################################################################### Sorting The Images ###################################################################################################################################################
@@ -190,7 +188,7 @@ def return_status():
         }}
 
         print("hello world")
-        url = f"http://localhost:5000/image_processing/selection_sorting_processes/{process_id}"
+        url = f"https://webhook.site/7a79bcdd-8ab9-4068-ae45-7fc9e43cf0cf"
         x = requests.patch(url, json=result)
 
     """Return first the response and tie the consolidated_score to a thread"""

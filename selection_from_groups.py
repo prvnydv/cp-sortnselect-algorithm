@@ -10,7 +10,7 @@ from utils import list_all_objects_of_a_bucket_folder
 
 
 
-def single_select(imgs):
+def single_select(imgs, job_uid):
 	# Selecting single image from groups with 3 or less number of images
   img_ids = [img.split("/")[-1] for img in imgs]
 
@@ -18,7 +18,7 @@ def single_select(imgs):
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
+  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
   for face in faces:
     if face.split("/")[-1].split("$")[-1] in img_ids:
       name=face.split("/")[-1].split("$")
@@ -34,14 +34,14 @@ def single_select(imgs):
   return happy.iloc[0]['image_id']
 
 
-def happy_selection(images):
+def happy_selection(images, job_uid):
   file_ids = images
   files = [f"s3://pical-backend-dev/store/{image}" for image in images]
 
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
+  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
   for face in faces:
     if face.split("/")[-1].split("$")[-1] in file_ids:
       name=[]
@@ -58,13 +58,13 @@ def happy_selection(images):
   return happy
 
 
-def selection_from_groups(images):
+def selection_from_groups(images, job_uid):
   # If 1 image group then we select it 
   if len(images)==1:
     return images[0].split("/")[-1]
   # If 3 or lrss image group then single image selection based on emotion scores
   elif len(images)<4:
-    return single_select(images)
+    return single_select(images, job_uid)
   # If none of the above then multiple selection 
   # Images that have less occuring faces are selected above 0.75 emotion score threshold
   else:
@@ -91,10 +91,10 @@ def selection_from_groups(images):
         sub_select_image_ids=list(set(x))
       # If no face occurs less than 50% of the total number of images in that group then we go back to single selection
       if len(sub_select_image_ids)==0:
-        return single_select(images)
+        return single_select(images, job_uid)
       else:
       # Else we select all images above 0.75 threshold emotion score
-        a=happy_selection(sub_select_image_ids)
+        a=happy_selection(sub_select_image_ids, job_uid)
         a.reset_index(inplace=True)
         for i in range(len(a)):
           if a.iloc[i]['happy']> 0.75:

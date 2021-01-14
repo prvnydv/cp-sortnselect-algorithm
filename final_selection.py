@@ -18,7 +18,7 @@ def selection(urls, job_uid):
     image_id=[]
     happy=[]
     face_count=[]
-    files=list_all_objects_of_a_bucket_folder('pical-backend-dev', 'image_faces')
+    files=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
 
 
     for file in files:
