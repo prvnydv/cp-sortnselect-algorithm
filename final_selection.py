@@ -11,20 +11,18 @@ from utils import list_all_objects_of_a_bucket_folder
 
 # Final sorting of all images that are selected from groups
 def selection(urls, job_uid):
-    url_ids = [url.split("/")[-1] for url in urls]
 
-    # Emotion scores of images 
     index=[]
     image_id=[]
     happy=[]
     face_count=[]
     files=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
 
-
     for file in files:
-        if file.split("/")[-1].split("$")[-1] in url_ids:
+        if file.split("/")[-1].split("$")[-1] in urls:
             name=[]
             name=file.split("/")[-1].split("$")
+            print(f"Happiness Score :: {expression_image(file)[0]}")
             happy.append(expression_image(file)[0])
             index.append(name[0])
             image_id.append(name[1])
@@ -32,6 +30,7 @@ def selection(urls, job_uid):
 
     data= list(zip(index,image_id,happy,face_count))
     final_data = pd.DataFrame(data, columns = ['index', 'image_id','happy','face_count'])
+    print(f"Final data after emotion score {final_data}")
     grouped = final_data.groupby('image_id')
     happy=pd.DataFrame(grouped['happy'].agg(np.mean))
     face_count= pd.DataFrame(grouped['face_count'].agg(np.sum))
@@ -40,7 +39,7 @@ def selection(urls, job_uid):
     eyes_focus=[]
 
     for file in files:
-        if file.split("/")[-1].split("$")[-1] in url_ids:
+        if file.split("/")[-1].split("$")[-1] in urls:
             eyes_focus.append(eyes_dir(file))
 
     data= list(zip(index,image_id,eyes_focus))
@@ -53,7 +52,7 @@ def selection(urls, job_uid):
     # Gender scores of images
     gender=[]
     for file in files:
-        if file.split("/")[-1].split("$")[-1] in url_ids:
+        if file.split("/")[-1].split("$")[-1] in urls:
             result=gender_pred(file)
             gender.append(result[0][0][0])
 
@@ -66,7 +65,7 @@ def selection(urls, job_uid):
     # Age scores of images
     age=[]
     for file in files:
-        if file.split("/")[-1].split("$")[-1] in url_ids:
+        if file.split("/")[-1].split("$")[-1] in urls:
             result=face_age(file)
             age.append(result)
 

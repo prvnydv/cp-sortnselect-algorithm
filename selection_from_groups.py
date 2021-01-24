@@ -12,15 +12,12 @@ from utils import list_all_objects_of_a_bucket_folder
 
 def single_select(imgs, job_uid):
 	# Selecting single image from groups with 3 or less number of images
-  img_ids = [img.split("/")[-1] for img in imgs]
-
-  # Selecting the best image based on emotion score
   index=[]
   image_id=[]
   happy=[]
   faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
   for face in faces:
-    if face.split("/")[-1].split("$")[-1] in img_ids:
+    if face.split("/")[-1].split("$")[-1] in imgs:
       name=face.split("/")[-1].split("$")
       happy.append(expression_image(face)[0])
       index.append(name[0])
@@ -36,7 +33,6 @@ def single_select(imgs, job_uid):
 
 def happy_selection(images, job_uid):
   file_ids = images
-  files = [f"s3://pical-backend-dev/store/{image}" for image in images]
 
   index=[]
   image_id=[]
@@ -58,7 +54,7 @@ def happy_selection(images, job_uid):
   return happy
 
 
-def selection_from_groups(images, job_uid):
+def selection_from_groups(images, drive, job_uid):
   # If 1 image group then we select it 
   if len(images)==1:
     return images[0].split("/")[-1]
@@ -70,9 +66,7 @@ def selection_from_groups(images, job_uid):
   else:
     face_image_mapper=dict()
     for i in range(len(images)):
-      ext = ('jpg','JPG','jpeg','JPEG','png','PNG')
-      if images[i].endswith(ext):
-        face_image_mapper = img_frequency(images[i], face_image_mapper)
+      face_image_mapper = img_frequency(images[i], drive, face_image_mapper)
 
     face_image_list=list(face_image_mapper.keys())
     for i in range(len(face_image_list)):
