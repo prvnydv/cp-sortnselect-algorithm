@@ -4,12 +4,12 @@ import cv2
 from face_extraction import detect_blur_fft
 import numpy as np
 from utils import read_pillow_image_from_s3
-from utils import write_cv2_image_to_s3, read_with_cv2_from_generated_temp_file
+from utils import read_with_cv2_from_generated_temp_file_gdrive
 
 model_face_extraction = cv2.dnn.readNetFromCaffe("face_extraction_model/deploy.prototxt", 'face_extraction_model/weights.caffemodel')
-def img_frequency(s3_uri,face_image_mapper):
+def img_frequency(s3_uri, drive, face_image_mapper):
 
-    image = read_with_cv2_from_generated_temp_file(s3_uri)
+    image = read_with_cv2_from_generated_temp_file_gdrive(drive, s3_uri)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     mean = detect_blur_fft(gray, size=60)
 
@@ -28,28 +28,28 @@ def img_frequency(s3_uri,face_image_mapper):
         
 
       # If confidence > 0.5, save it as a separate file
-        if (confidence > 0.5):
+        if (confidence > 0.25):
             count += 1
             frame = image[startY:endY, startX:endX]
-            if len(frame)>200 and len(frame[0])>200 and mean>0:
+            #if len(frame)>200 and len(frame[0])>200 and mean>0:
 
-                try:
-                    # Saving New Faces and appending in image maps when similar image is found
-                    face_enc_of_image=face_recognition.face_encodings(frame)[0]
-                    face_image_list = list(face_image_mapper.keys())
-                    flag=0
-                    for k in range(len(face_image_list)):
-                        if face_recognition.compare_faces([face_image_mapper[face_image_list[k]]['face_vector']], face_enc_of_image)[0]:
-                            # Append in Image map if faces are similar
-                            face_image_mapper[face_image_list[k]]['images'].append(f"{s3_uri.split('/')[-1]}")
-                            flag=1
-                            break
-                        else:
-                            continue
-                    if flag==0:
-                        # Save new face
-                        face_image_mapper[f"{i}${s3_uri.split('/')[-1]}"]={'face_vector':face_enc_of_image,'images':[f"{s3_uri.split('/')[-1]}"]}                               
-                    
-                except:
-                    pass
+            try:
+                # Saving New Faces and appending in image maps when similar image is found
+                face_enc_of_image=face_recognition.face_encodings(frame)[0]
+                face_image_list = list(face_image_mapper.keys())
+                flag=0
+                for k in range(len(face_image_list)):
+                    if face_recognition.compare_faces([face_image_mapper[face_image_list[k]]['face_vector']], face_enc_of_image)[0]:
+                        # Append in Image map if faces are similar
+                        face_image_mapper[face_image_list[k]]['images'].append(f"{s3_uri}")
+                        flag=1
+                        break
+                    else:
+                        continue
+                if flag==0:
+                    # Save new face
+                    face_image_mapper[f"{i}${s3_uri}"]={'face_vector':face_enc_of_image,'images':[f"{s3_uri}"]}                               
+                
+            except:
+                pass
     return face_image_mapper
