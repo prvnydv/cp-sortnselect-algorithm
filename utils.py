@@ -8,14 +8,19 @@ import tempfile
 import cv2
 import pandas as pd
 from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+from pydrive.drive import GoogleDrive
+from pydrive.auth import GoogleAuth
 
 
-def get_date_taken(s3_uri):
-    s3 = initiate_s3_client_instance()
-    bucket, key = parse_bucket_key(s3_uri)
-    file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+def get_date_taken(file_id, drive):
+    file = drive.CreateFile({'id': file_id})
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, 'wb') as f:
+        file.GetContentFile(tmp.name)
+        img=Image.open(tmp.name)
+        f.close()
 
-    date_time=re.split(':| ',Image.open(BytesIO(file_byte_string))._getexif()[36867])
+    date_time=re.split(':| ',img._getexif()[36867])
     return int(date_time[0]+date_time[1]+date_time[2]+date_time[3]+date_time[4]+date_time[5])
 
 # unpacking [1,[2,3],{4,5,6}] --> [1,2,3,4,5,6]
@@ -82,6 +87,17 @@ def read_pillow_image_from_s3(s3_uri):
     file_byte_string = s3.get_object(Bucket=bucket, Key=key)['Body'].read()
     
     return Image.open(BytesIO(file_byte_string))
+
+def read_with_cv2_from_generated_temp_file_gdrive(drive, file_id):
+    file = drive.CreateFile({'id': file_id})
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, 'wb') as f:
+        file.GetContentFile(tmp.name)
+        img=cv2.imread(tmp.name)
+
+        f.close()
+    
+    return img
 
 def read_with_cv2_from_generated_temp_file(s3_uri):
     aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
@@ -175,5 +191,22 @@ def load_image_for_keras(s3_uri, target_size):
         f.close()
     
     return img
+
+def create_gdrive_instance():
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()
+
+    drive = GoogleDrive(gauth)
+    return drive
+
+def read_file_content_gdrive(drive, file_id):
+    file = drive.CreateFile({'id': file_id})
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, 'wb') as f:
+        file.GetContentFile(tmp.name)
+        img=Image.open(tmp.name)
+        f.close()
+    return img
+
 
 
