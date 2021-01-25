@@ -15,7 +15,7 @@ def single_select(imgs, job_uid):
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
+  faces=list_all_objects_of_a_bucket_folder('pical-ds-dev', f'{job_uid}/image_faces')
   for face in faces:
     if face.split("/")[-1].split("$")[-1] in imgs:
       name=face.split("/")[-1].split("$")
@@ -37,7 +37,7 @@ def happy_selection(images, job_uid):
   index=[]
   image_id=[]
   happy=[]
-  faces=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
+  faces=list_all_objects_of_a_bucket_folder('pical-ds-dev', f'{job_uid}/image_faces')
   for face in faces:
     if face.split("/")[-1].split("$")[-1] in file_ids:
       name=[]

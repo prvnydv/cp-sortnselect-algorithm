@@ -75,7 +75,7 @@ def return_status():
 
 
         image_id=[]
-        face_files_url=list_all_objects_of_a_bucket_folder('pical-backend-dev', f'{job_uid}/image_faces')
+        face_files_url=list_all_objects_of_a_bucket_folder('pical-ds-dev', f'{job_uid}/image_faces')
         for url in face_files_url:
             name=url.split("$")
             image_id.append(name[-1])

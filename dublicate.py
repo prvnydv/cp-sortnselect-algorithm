@@ -19,7 +19,7 @@ def img_hash(file_id, hash_size, drive):
 read_file_content_gdrive
 def get_hashes(url_array, hash_size, job_uid, drive): # Adding the hashes to csv for future use
   hash_file = f"img_hashes_{hash_size}"
-  if not check_if_file_present('pical-backend-dev', f"{job_uid}/{hash_file}"):
+  if not check_if_file_present('pical-ds-dev', f"{job_uid}/{hash_file}"):
     hashes = pd.DataFrame()
 
     new_hashes_calculated = 0

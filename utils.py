@@ -33,8 +33,8 @@ def unpack(seq):
         yield seq
 
 def initiate_s3_resource_instance():
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
     region_name = 'ap-south-1'
     s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id, 
                               aws_secret_access_key=aws_secret_access_key, 
@@ -43,8 +43,8 @@ def initiate_s3_resource_instance():
     return s3
 
 def initiate_s3_client_instance():
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
     region_name = 'ap-south-1'
     s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, 
                               aws_secret_access_key=aws_secret_access_key, 
@@ -52,9 +52,9 @@ def initiate_s3_client_instance():
 
     return s3
 
-def df_to_s3(df, job_uid, op_name, bucket='pical-backend-dev'):
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+def df_to_s3(df, job_uid, op_name, bucket='pical-ds-dev'):
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
 
     path = str(job_uid)
     bytes_to_write = df.to_csv(None).encode()
@@ -63,12 +63,12 @@ def df_to_s3(df, job_uid, op_name, bucket='pical-backend-dev'):
         f.write(bytes_to_write)
 
 def df_from_s3(job_uid, op_name):
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
 
     fs = s3fs.S3FileSystem(anon=False, key=aws_access_key_id, secret=aws_secret_access_key, use_ssl=False)
     key = f"{job_uid}/{op_name}.csv"
-    bucket = 'pical-backend-dev'
+    bucket = 'pical-ds-dev'
 
     df = pd.read_csv(fs.open(f"{bucket}/{key}", mode='rb'))
 
@@ -100,8 +100,8 @@ def read_with_cv2_from_generated_temp_file_gdrive(drive, file_id):
     return img
 
 def read_with_cv2_from_generated_temp_file(s3_uri):
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
     region_name = 'ap-south-1'
 
     s3 = boto3.client('s3', aws_access_key_id = aws_access_key_id, aws_secret_access_key = aws_secret_access_key, 
@@ -118,7 +118,7 @@ def read_with_cv2_from_generated_temp_file(s3_uri):
     
     return img
 
-def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='pical-backend-dev'):
+def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='pical-ds-dev'):
     print(f'Writing Images int o s3')
     s3 = initiate_s3_resource_instance()
     tmp = tempfile.NamedTemporaryFile(suffix='.jpg')
@@ -130,8 +130,8 @@ def write_cv2_image_to_s3(image, folder_name, file_name, job_uid, bucket='pical-
 
 
 def s3_client():
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
     return s3fs.S3FileSystem(anon=False,
                              key=aws_access_key_id,
                              secret=aws_secret_access_key,
@@ -174,8 +174,8 @@ def list_key_bucket_object(bucket_name:str, folder_name:str):
     return s3_uris
 
 def load_image_for_keras(s3_uri, target_size):
-    aws_access_key_id = 'AKIAJRZVZ6HMUSSYSXYQ'
-    aws_secret_access_key = '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'
+    aws_access_key_id = 'AKIAIU3DL4SOXTHZL3PA'
+    aws_secret_access_key = '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'
     region_name = 'ap-south-1'
 
     s3 = boto3.client('s3', aws_access_key_id = aws_access_key_id, aws_secret_access_key = aws_secret_access_key, 
