@@ -39,4 +39,7 @@ def img_to_faces(job_uid, url, drive, folder):
       confidence = detections[0, 0, i, 2]
       if (confidence > 0.25):
           frame = image[startY:endY, startX:endX]
-          write_cv2_image_to_s3(frame, folder, f"{i}${url}", job_uid)
+          try:
+              write_cv2_image_to_s3(frame, folder, f"{i}${url}", job_uid)
+          except:
+              pass
