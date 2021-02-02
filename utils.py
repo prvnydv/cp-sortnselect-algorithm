@@ -194,7 +194,12 @@ def load_image_for_keras(s3_uri, target_size):
 
 def create_gdrive_instance():
     gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()
+    gauth.LoadCredentialsFile("oauth_creds.txt")
+    if gauth.credentials is None: gauth.LocalWebserverAuth()
+    elif gauth.access_token_expired: gauth.Refresh()
+    else: gauth.Authorize()
+    # Save the current credentials to a file
+    gauth.SaveCredentialsFile("oauth_creds.txt")
 
     drive = GoogleDrive(gauth)
     return drive
