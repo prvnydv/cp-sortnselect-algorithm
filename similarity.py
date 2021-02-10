@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from utils import read_file_content_gdrive
 
-def get_colors(drive, file_id, numcolors=5, resize=150):
+def get_colors(drive, file_id, numcolors=10, resize=150):
     # Resize image to speed up processing
     img = read_file_content_gdrive(drive, file_id)
     img = img.copy()
@@ -22,9 +22,8 @@ def get_colors(drive, file_id, numcolors=5, resize=150):
 # Finding color similarity between images on their 10-color palette
 def color_diff(a,b):
     c=0
-    for i in range(5):
-        for  j in range(5):
-            print(abs(a[i]-b[j]).sum())
+    for i in range(10):
+        for  j in range(10):
             if abs(a[i]-b[j]).sum()<40:
                 c+=1
                 break

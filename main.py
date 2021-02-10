@@ -63,6 +63,8 @@ def consolidated_score():
     print(f" Input Image urls {url_array}")
     print(f" number_of_output_images :: {number_of_output_images}")
     print(f" Job UID :: {job_uid}")
+    print(f" url_image_id_mapper :: {url_image_id_mapper}")
+
     
     print("Generated Image Url mapper")
 
@@ -128,39 +130,55 @@ def consolidated_score():
     grouped_url_array[group] = []
     grouped_url_array[group].append(all_features.iloc[0]['image_id'])
     if len(all_features) > 3:
-        for i in range(len(all_features)-3):
+        i = 0
+        while i < (len(all_features)-3):
             a,b,c,d=get_colors(drive, all_features.iloc[i]['image_id']), get_colors(drive, all_features.iloc[i+1]['image_id']), get_colors(drive, all_features.iloc[i+2]['image_id']), get_colors(drive, all_features.iloc[i+3]['image_id'])
             # Checking ith and (i+3)th image
-            if color_diff(a,d)>18: # 6 out of 10 colors should be same if they are to be in same group
+            print(f"Colour Similarity of a and d :: {color_diff(a,d)}")
+            print(f"Colour Similarity of a and c :: {color_diff(a,c)}")
+            print(f"Colour Similarity of a and b :: {color_diff(a,b)}")
+            if color_diff(a,d)>5: # 6 out of 10 colors should be same if they are to be in same group
                 try:
                     grouped_url_array[group].append(all_features.iloc[i+1]['image_id'])
                     grouped_url_array[group].append(all_features.iloc[i+2]['image_id'])
                     grouped_url_array[group].append(all_features.iloc[i+3]['image_id'])
 
-                    i+=2
+                    i+=3
                 except:
                     pass
             # Checking ith and (i+2)th image
-            elif color_diff(a,c)>18: # 6 out of 10 colors should be same if they are to be in same group
+            elif color_diff(a,c)>5: # 6 out of 10 colors should be same if they are to be in same group
                 try:
                     grouped_url_array[group].append(all_features.iloc[i+1]['image_id'])
                     grouped_url_array[group].append(all_features.iloc[i+2]['image_id'])
 
-                    i+=1
+                    i+=2
                 except:
                     pass
             # Checking ith and (i+1)th image
-            elif color_diff(a,b)>18: # 6 out of 10 colors should be same if they are to be in same group
+            elif color_diff(a,b)>5: # 6 out of 10 colors should be same if they are to be in same group
                 try:
                     grouped_url_array[group].append(all_features.iloc[i+1]['image_id'])
+                    i+=1
                 except:
                     pass 
             else: # New group created if none of the above criterion are met
                 group_number+=1
+                group = f"group_{group_number}"
+                grouped_url_array[group] = []
+                print(f"Next Group Number :: {group_number}")
                 try:
                     grouped_url_array[group].append(all_features.iloc[i+1]['image_id'])
+                    i+=1
                 except:
                     pass
+        for j in (i+1, len(all_features)):
+            group_number+=1
+            group = f"group_{group_number}"
+            try:
+                grouped_url_array[group].append(all_features.iloc[j]['image_id'])
+            except:
+                pass
     else:
         for index,element in enumerate(all_features['image_id'].tolist()):
             group=f"group_{group_number+index+1}"
