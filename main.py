@@ -56,7 +56,7 @@ def consolidated_score():
         url_image_id_mapper[file['id']] = file['title']
     
     number_of_output_images = math.ceil(0.2*len(url_array))
-    job_uid = 99
+    job_uid = 8799
 
     start_time = time.time()
 
