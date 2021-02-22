@@ -30,8 +30,11 @@ def consolidated_score():
     date_format = "%Y-%m-%d %H:%M:%S"
     drive = create_gdrive_instance()
     folder_to_execute = drive.ListFile({"q": "mimeType='application/vnd.google-apps.folder' and sharedWithMe"}).GetList()[0]
-
+    
+    date = datetime.now().date().strftime("%Y_%m_%d")
     folder_name = folder_to_execute['title']
+    folder_name = "_".join(folder_name.split(" "))
+    folder_name = f"{folder_name}_{date}"
     print(f"Folder name is :: {folder_name}")
     folder_id   = folder_to_execute['id']
 
@@ -56,8 +59,9 @@ def consolidated_score():
         url_image_id_mapper[file['id']] = file['title']
     
     number_of_output_images = math.ceil(0.2*len(url_array))
-    job_uid = 8799
+    job_uid = folder_name
 
+    print(f"Job UID :: {job_uid}")
     start_time = time.time()
 
     print(f" Input Image urls {url_array}")
