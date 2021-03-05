@@ -58,7 +58,7 @@ def consolidated_score():
         url_array.append(file['id'])
         url_image_id_mapper[file['id']] = file['title']
     
-    number_of_output_images = math.ceil(0.2*len(url_array))
+    number_of_output_images = math.ceil(0.1*len(url_array))
     job_uid = folder_name
 
     print(f"Job UID :: {job_uid}")
